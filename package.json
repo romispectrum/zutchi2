@@ -16,15 +16,19 @@
     "@heroicons/react": "^2.0.12",
     "@privy-io/react-auth": "^2.18.0",
     "@privy-io/server-auth": "1.21.2",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/forms": "^0.5.3",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.539.0",
     "next": "latest",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@tsconfig/next": "^2.0.0",
