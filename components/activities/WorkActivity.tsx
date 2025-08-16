@@ -189,11 +189,7 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
                     </svg>
                   </motion.button>
                 )}
-                <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
-                  <span className="text-white text-sm">👋</span>
-                </div>
                 <div>
-                  <p className="text-xs text-gray-700 font-medium">Hello, Roman-24</p>
                   <p className="text-sm font-bold text-gray-800">{formatTime(currentTime)}</p>
                 </div>
               </div>
@@ -305,7 +301,7 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
                 }}
               >
                 <Image
-                  src="/cats-for-use/work/19-1.svg"
+                  src="/cats-for-use/work/Cat 2a.png"
                   alt="Working Zutchi Cat"
                   width={200}
                   height={200}
@@ -472,7 +468,7 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
                 }}
               >
                 <Image
-                  src="/cats-for-use/work/19-1.svg"
+                  src="/cats-for-use/work/Cat 2a.png"
                   alt="Working Zutchi Cat"
                   width={280}
                   height={280}

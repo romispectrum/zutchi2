@@ -289,11 +289,7 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
                     </svg>
                   </motion.button>
                 )}
-                <div className="h-6 w-6 lg:h-8 lg:w-8 rounded-lg lg:rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
-                  <span className="text-white text-sm leading-none">👋</span>
-                </div>
                 <div>
-                  <p className="text-xs text-gray-700 font-medium">Hello, Roman-24</p>
                   <p className="text-xs lg:text-sm font-bold text-gray-800">{formatTime(currentTime)}</p>
                 </div>
               </div>
@@ -509,7 +505,7 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
                 }}
               >
                 <Image
-                  src="/cats-for-use/social/26.svg"
+                  src="/cats-for-use/social/V36.png"
                   alt="Social Zutchi Cat"
                   width={180}
                   height={180}
