@@ -1,36 +1,35 @@
-"use client";
-
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 import { usePrivy } from "@privy-io/react-auth";
 
-export default function App() {
-  const { ready, authenticated, login, logout, user } = usePrivy();
+export default function AppPage() {
+  const { ready, authenticated, logout, user } = usePrivy();
+  const router = useRouter();
 
-  if (!ready) {
-    return <p className="p-6">Loading...</p>;
-  }
+  useEffect(() => {
+    if (ready && !authenticated) {
+      router.replace("/"); // kick back to landing if logged out
+    }
+  }, [ready, authenticated, router]);
+
+  if (!ready) return <p className="p-6">Loading...</p>;
+  if (!authenticated) return null;
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-2xl font-bold mb-6">Privy Auth Demo</h1>
-
-      {authenticated ? (
-        <>
-          <p className="mb-4">Welcome, {user?.id}</p>
-          <button
-            onClick={logout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-          >
-            Logout
-          </button>
-        </>
-      ) : (
+    <main className="flex min-h-screen items-center justify-center bg-gray-100">
+      <div className="text-center">
+        <h1 className="mb-6 text-2xl font-bold">Welcome to Zutchi</h1>
+        <p className="mb-4">User ID: {user?.id}</p>
         <button
-          onClick={login}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+          onClick={() => {
+            logout();
+            router.replace("/"); // send back to landing
+          }}
+          className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600"
         >
-          Login
+          Logout
         </button>
-      )}
+      </div>
     </main>
   );
 }

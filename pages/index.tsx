@@ -1,64 +1,69 @@
-import Portal from "../components/graphics/portal";
-import { useLogin } from "@privy-io/react-auth";
-import { PrivyClient } from "@privy-io/server-auth";
-import { GetServerSideProps } from "next";
 import Head from "next/head";
+import Image from "next/image";
 import { useRouter } from "next/router";
+import { useLogin } from "@privy-io/react-auth";
+import { Play } from "lucide-react";
+import { motion } from "framer-motion";
+import {Button} from "../components/ui/button";
 
-export const getServerSideProps: GetServerSideProps = async ({ req }) => {
-  const cookieAuthToken = req.cookies["privy-token"];
-
-  // If no cookie is found, skip any further checks
-  if (!cookieAuthToken) return { props: {} };
-
-  const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-  const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
-  const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
-
-  try {
-    const claims = await client.verifyAuthToken(cookieAuthToken);
-    // Use this result to pass props to a page for server rendering or to drive redirects!
-    // ref https://nextjs.org/docs/pages/api-reference/functions/get-server-side-props
-    console.log({ claims });
-
-    return {
-      props: {},
-      redirect: { destination: "/dashboard", permanent: false },
-    };
-  } catch (error) {
-    return { props: {} };
-  }
-};
-
-export default function LoginPage() {
+export default function LandingPage() {
   const router = useRouter();
   const { login } = useLogin({
-    onComplete: () => router.push("/dashboard"),
+    onComplete: () => router.push("/app"), // after login, go to /app
   });
 
   return (
     <>
       <Head>
-        <title>Login · Privy</title>
+        <title>Zutchi • Play</title>
+        <meta
+          name="description"
+          content="Play. Socialize. Earn. Your digital pet, brought to life!"
+        />
       </Head>
 
-      <main className="flex min-h-screen min-w-full">
-        <div className="flex bg-privy-light-blue flex-1 p-6 justify-center items-center">
-          <div>
-            <div>
-              <Portal style={{ maxWidth: "100%", height: "auto" }} />
-            </div>
-            <div className="mt-6 flex justify-center text-center">
-              <button
-                className="bg-violet-600 hover:bg-violet-700 py-3 px-6 text-white rounded-lg"
-                onClick={login}
-              >
-                Log in
-              </button>
-            </div>
-          </div>
+      <div className="relative min-h-screen text-white">
+        {/* Background art */}
+        <Image
+          src="/zutchi-landing.png"
+          alt="Zutchi skyline background"
+          fill
+          priority
+          className="pointer-events-none select-none object-cover object-bottom"
+        />
+
+        {/* Hero */}
+        <div className="relative z-10 flex flex-col items-center gap-6 pt-24">
+          <Image
+            src="/zutchi-banner.png"
+            alt="Zutchi"
+            width={700}
+            height={614}
+            priority
+          />
+
+          <p className="text-center text-lg md:text-xl text-black">
+            Play. Socialize. Earn. Your digital pet, brought to life!
+          </p>
+
+          {/* Play/Login Button */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 120, damping: 12 }}
+            className="relative z-20"
+          >
+            <Button
+              size="lg"
+              className="px-8 bg-violet-600 text-white hover:bg-violet-700"
+              onClick={login}
+            >
+              <Play className="mr-2 h-5 w-5" />
+              Play
+            </Button>
+          </motion.div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

@@ -18,9 +18,13 @@
     "@privy-io/server-auth": "1.21.2",
     "@tailwindcss/forms": "^0.5.3",
     "axios": "^1.9.0",
+    "class-variance-authority": "^0.7.1",
+    "framer-motion": "^12.23.12",
+    "lucide-react": "^0.539.0",
     "next": "latest",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@tsconfig/next": "^2.0.0",
