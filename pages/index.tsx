@@ -48,17 +48,19 @@ export default function LandingPage() {
         />
 
         {/* Hero */}
-        <div className="relative z-10 flex flex-col items-center gap-3 lg:gap-6 pt-12 lg:pt-24 px-2 lg:px-4">
-          <Image
-            src="/zutchi-banner.png"
-            alt="Zutchi"
-            width={350}
-            height={308}
-            priority
-            className="lg:w-[700px] lg:h-[614px] max-w-full h-auto"
-          />
+        <div className="relative z-10 flex flex-col items-center gap-3 lg:gap-6 pt-12 lg:pt-24 px-2 lg:px-4 text-center">
+          <div className="w-full flex justify-center">
+            <Image
+              src="/zutchi-banner.png"
+              alt="Zutchi"
+              width={350}
+              height={308}
+              priority
+              className="w-full max-w-[350px] h-auto sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[700px]"
+            />
+          </div>
 
-          <p className="text-center text-sm lg:text-lg xl:text-xl text-black max-w-lg lg:max-w-none px-2 lg:px-4">
+          <p className="text-center text-sm sm:text-base md:text-lg lg:text-xl text-black max-w-lg lg:max-w-2xl px-2 lg:px-4 leading-relaxed">
             Play. Earn. Socialize. Educate. Your digital pet, brought to life!
           </p>
 
