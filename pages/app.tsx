@@ -95,25 +95,12 @@ const AppPage = () => {
   // Main pet game view
   return (
     <div className="min-h-screen bg-orange-300 relative">
-      {/* User info and logout button */}
-      <div className="absolute top-4 right-4 z-10">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-3">
-          <div className="text-xs font-bold text-gray-600 mb-1">
-            Welcome, {user?.id?.slice(0, 8)}...
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded border-2 border-black text-xs font-bold transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-
       <PetGame
         onActivityChange={setCurrentActivity}
         currentActivity={currentActivity}
         userId={user?.id}
+        user={user}
+        onLogout={handleLogout}
       />
     </div>
   );

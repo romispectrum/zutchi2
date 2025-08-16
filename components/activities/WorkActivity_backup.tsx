@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import ActivityRightPanel from './ActivityRightPanel';
-import ActivityMobilePanel from './ActivityMobilePanel';
 
 interface PetStats {
   happiness: number;
@@ -14,14 +12,14 @@ interface PetStats {
   social: number;
 }
 
-interface EatActivityProps {
+interface WorkActivityProps {
   onActivityChange: (activity: string) => void;
   currentActivity: string;
   userId?: string;
   onBack?: () => void;
 }
 
-const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatActivityProps) => {
+const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack }: WorkActivityProps) => {
   const [stats] = useState<PetStats>({
     happiness: 75,
     hunger: 60,
@@ -30,11 +28,11 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
     social: 50
   });
 
-  const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('hungry');
+  const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('tired');
   const [coins] = useState(305);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isEating, setIsEating] = useState(false);
-  const [eatTimer, setEatTimer] = useState(0);
+  const [isWorking, setIsWorking] = useState(false);
+  const [workTimer, setWorkTimer] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -69,14 +67,14 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
   };
 
   const getMoodMessage = () => {
-    if (isEating) {
-      return `Yummy! So delicious! 😋 (${eatTimer}s)`;
+    if (isWorking) {
+      return `Hard at work! 💪 (${workTimer}s)`;
     }
     switch (petMood) {
       case 'hungry': return 'I\'m getting hungry! 🥺';
       case 'tired': return 'Zzz... I need some rest 😴';
       case 'sad': return 'I need some love and care 💔';
-      default: return 'Time for some tasty food! 😸';
+      default: return 'Ready to be productive! 😸';
     }
   };
 
@@ -88,15 +86,15 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
     });
   };
 
-  const handleEat = () => {
-    if (currentActivity === 'eat' && !isEating) {
-      setIsEating(true);
-      setEatTimer(5);
+  const handleWork = () => {
+    if (currentActivity === 'work' && !isWorking) {
+      setIsWorking(true);
+      setWorkTimer(10);
 
       const interval = setInterval(() => {
-        setEatTimer(prev => {
+        setWorkTimer(prev => {
           if (prev <= 1) {
-            setIsEating(false);
+            setIsWorking(false);
             clearInterval(interval);
             return 0;
           }
@@ -104,13 +102,13 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
         });
       }, 1000);
     } else {
-      onActivityChange('eat');
+      onActivityChange('work');
     }
   };
 
   const handleActivityClick = (activityId: string) => {
-    if (activityId === 'eat') {
-      handleEat();
+    if (activityId === 'work') {
+      handleWork();
     } else {
       onActivityChange(activityId);
     }
@@ -120,22 +118,22 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
     <div className="min-h-screen w-full relative">
       {/* Background Image */}
       <Image
-        src="/backgrounds/Food.png"
-        alt="Food background"
+        src="/backgrounds/home.png"
+        alt="Work background"
         fill
         priority
         className="object-cover object-center"
       />
 
       {/* Magical overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-100/20 via-yellow-50/15 to-red-100/20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 via-blue-50/15 to-gray-100/20" />
 
       {/* Floating particles animation */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(5)].map((_, i) => (
+        {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1.5 h-1.5 bg-orange-400/40 rounded-full"
+            className="absolute w-1.5 h-1.5 bg-purple-400/40 rounded-full"
             initial={{
               x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800),
               y: (typeof window !== 'undefined' ? window.innerHeight : 600) + 10
@@ -145,7 +143,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
               x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800)
             }}
             transition={{
-              duration: Math.random() * 7 + 10,
+              duration: Math.random() * 10 + 15,
               repeat: Infinity,
               ease: "linear"
             }}
@@ -251,54 +249,54 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
               {/* Pet Character */}
               <motion.div
                 className="relative mb-4"
-                animate={isEating ? {
-                  scale: [1, 1.05, 1],
+                animate={isWorking ? {
+                  x: [0, 2, -2, 0],
                 } : {
                   y: [0, -8, 0],
                 }}
                 transition={{
-                  duration: isEating ? 1 : 3,
+                  duration: isWorking ? 0.5 : 3,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               >
                 <Image
-                  src="/cats-for-use/home/V54.png"
-                  alt="Eating Zutchi Cat"
+                  src="/cats-for-use/work/19-1.svg"
+                  alt="Working Zutchi Cat"
                   width={200}
                   height={200}
                   className="drop-shadow-2xl sm:w-[240px] sm:h-[240px]"
                   priority
                 />
 
-                {/* Eating effects - Food particles */}
+                {/* Work effects - Progress indicators */}
                 <AnimatePresence>
-                  {isEating && (
+                  {isWorking && (
                     <>
                       {[...Array(3)].map((_, i) => (
                         <motion.div
-                          key={`food-${i}`}
-                          className="absolute text-xl sm:text-2xl"
+                          key={`work-${i}`}
+                          className="absolute text-xl sm:text-2xl text-purple-600"
                           initial={{
-                            x: 80 + i * 20,
-                            y: 80,
+                            x: 50 + i * 30,
+                            y: 60,
                             opacity: 0,
                             scale: 0.5
                           }}
                           animate={{
-                            x: 80 + i * 20,
-                            y: 60,
+                            x: 70 + i * 30,
+                            y: 40,
                             opacity: [0, 1, 0],
                             scale: [0.5, 1, 0.5]
                           }}
                           transition={{
-                            duration: 1.5,
+                            duration: 2,
                             repeat: Infinity,
-                            delay: i * 0.4,
-                            ease: "easeInOut"
+                            delay: i * 0.3,
+                            ease: "easeOut"
                           }}
                         >
-                          {['🍎', '🥕', '🍖'][i]}
+                          ⚡
                         </motion.div>
                       ))}
                     </>
@@ -309,7 +307,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
               {/* Pet name tag */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
                 <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {isEating ? 'Hungry Zutchi 🍽️' : 'Zutchi 2.0 ✨'}
+                  {isWorking ? 'Working Zutchi 💼' : 'Zutchi 2.0 ✨'}
                 </span>
               </div>
 
@@ -329,12 +327,55 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
             </motion.div>
 
             {/* Mobile Activities Grid (2x2) */}
-            <ActivityMobilePanel
-              currentActivity={currentActivity}
-              activities={activities}
-              onActivityClick={handleActivityClick}
-              className=""
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="grid grid-cols-2 gap-3"
+            >
+              {activities.map((activity, index) => {
+                const isActive = currentActivity === activity.id;
+                return (
+                  <motion.button
+                    key={activity.id}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleActivityClick(activity.id)}
+                    disabled={isWorking && activity.id === 'work'}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-300 touch-manipulation ${
+                      isActive
+                        ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
+                        : isWorking && activity.id === 'work'
+                          ? 'border-gray-300 bg-gray-100/80 opacity-50 cursor-not-allowed'
+                          : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg active:scale-95'
+                    }`}
+                  >
+                    <div className={`h-12 w-12 rounded-xl bg-gradient-to-r ${activity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
+                      <span className="text-2xl leading-none">{activity.emoji}</span>
+                    </div>
+                    <span className={`text-sm font-bold ${
+                      isActive ? 'text-purple-700' : 'text-gray-700'
+                    }`}>
+                      {activity.name}
+                    </span>
+
+                    {isActive && (
+                      <motion.div
+                        className="w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <span className="text-white text-xs">✓</span>
+                      </motion.div>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </motion.div>
           </div>
 
           {/* Desktop Layout - Show on large screens */}
@@ -399,54 +440,54 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
               {/* Pet Character */}
               <motion.div
                 className="relative mb-4"
-                animate={isEating ? {
-                  scale: [1, 1.05, 1],
+                animate={isWorking ? {
+                  x: [0, 2, -2, 0],
                 } : {
                   y: [0, -8, 0],
                 }}
                 transition={{
-                  duration: isEating ? 1 : 3,
+                  duration: isWorking ? 0.5 : 3,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               >
                 <Image
-                  src="/cats-for-use/home/V54.png"
-                  alt="Eating Zutchi Cat"
+                  src="/cats-for-use/work/19-1.svg"
+                  alt="Working Zutchi Cat"
                   width={280}
                   height={280}
                   className="drop-shadow-2xl"
                   priority
                 />
 
-                {/* Eating effects - Food particles */}
+                {/* Work effects - Progress indicators */}
                 <AnimatePresence>
-                  {isEating && (
+                  {isWorking && (
                     <>
                       {[...Array(3)].map((_, i) => (
                         <motion.div
-                          key={`food-${i}`}
-                          className="absolute text-2xl"
+                          key={`work-${i}`}
+                          className="absolute text-2xl text-purple-600"
                           initial={{
-                            x: 120 + i * 30,
-                            y: 100,
+                            x: 50 + i * 40,
+                            y: 60,
                             opacity: 0,
                             scale: 0.5
                           }}
                           animate={{
-                            x: 120 + i * 30,
-                            y: 80,
+                            x: 80 + i * 40,
+                            y: 40,
                             opacity: [0, 1, 0],
                             scale: [0.5, 1, 0.5]
                           }}
                           transition={{
-                            duration: 1.5,
+                            duration: 2,
                             repeat: Infinity,
-                            delay: i * 0.4,
-                            ease: "easeInOut"
+                            delay: i * 0.3,
+                            ease: "easeOut"
                           }}
                         >
-                          {['🍎', '🥕', '🍖'][i]}
+                          ⚡
                         </motion.div>
                       ))}
                     </>
@@ -457,7 +498,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
               {/* Pet name tag */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
                 <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {isEating ? 'Hungry Zutchi 🍽️' : 'Zutchi 2.0 ✨'}
+                  {isWorking ? 'Working Zutchi 💼' : 'Zutchi 2.0 ✨'}
                 </span>
               </div>
 
@@ -477,15 +518,69 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
             </motion.div>
 
             {/* Right Panel - Activities (Desktop) */}
-            <ActivityRightPanel
-              currentActivity={currentActivity}
-              activities={activities}
-              onActivityClick={handleActivityClick}
-              className=""
-            />
+            <motion.div
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="w-72 xl:w-80 space-y-3 max-h-[600px] overflow-y-auto"
+            >
+              {/* Activities Header */}
+              <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                    <span className="text-white text-sm leading-none">🎮</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800">Activities</h3>
+                </div>
+              </div>
+
+              {/* Activity Buttons - Vertical */}
+              {activities.map((activity, index) => {
+                const isActive = currentActivity === activity.id;
+                return (
+                  <motion.button
+                    key={activity.id}
+                    initial={{ x: 30, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleActivityClick(activity.id)}
+                    disabled={isWorking && activity.id === 'work'}
+                    className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 ${
+                      isActive
+                        ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
+                        : isWorking && activity.id === 'work'
+                          ? 'border-gray-300 bg-gray-100/80 opacity-50 cursor-not-allowed'
+                          : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg'
+                    }`}
+                  >
+                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-r ${activity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
+                      <span className="text-xl leading-none">{activity.emoji}</span>
+                    </div>
+                    <span className={`text-sm font-bold ${
+                      isActive ? 'text-purple-700' : 'text-gray-700'
+                    }`}>
+                      {activity.name}
+                    </span>
+
+                    {isActive && (
+                      <motion.div
+                        className="ml-auto w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <span className="text-white text-xs">✓</span>
+                      </motion.div>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </motion.div>
           </div>
 
-          {/* Eat Action Button */}
+          {/* Work Action Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -495,19 +590,19 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleEat}
-              disabled={isEating}
+              onClick={handleWork}
+              disabled={isWorking}
               className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold text-white shadow-xl transition-all duration-300 touch-manipulation ${
-                isEating
+                isWorking
                   ? 'bg-gray-400 cursor-not-allowed opacity-70'
-                  : 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 active:scale-95'
+                  : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 active:scale-95'
               }`}
             >
-              <span className="text-xl">🍽️</span>
+              <span className="text-xl">💼</span>
               <span className="text-sm sm:text-base">
-                {isEating ? `Eating... ${eatTimer}s` : 'Start Eating'}
+                {isWorking ? `Working... ${workTimer}s` : 'Start Working'}
               </span>
-              {isEating && <span className="text-xl">😋</span>}
+              {isWorking && <span className="text-xl">⚡</span>}
             </motion.button>
           </motion.div>
 
@@ -520,9 +615,9 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
           >
             <div className="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-lg border border-white/40 inline-block">
               <p className="text-xs text-gray-600 flex items-center gap-2">
-                <span>🍽️</span>
-                Eating restores hunger and happiness!
-                <span>😋</span>
+                <span>💼</span>
+                Working increases focus and earns coins!
+                <span>💪</span>
               </p>
             </div>
           </motion.div>
@@ -532,4 +627,4 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
   );
 };
 
-export default EatActivity;
+export default WorkActivity;

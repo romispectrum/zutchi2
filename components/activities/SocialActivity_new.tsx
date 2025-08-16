@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import ActivityRightPanel from './ActivityRightPanel';
-import ActivityMobilePanel from './ActivityMobilePanel';
 
 interface PetStats {
   happiness: number;
@@ -64,41 +62,6 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack }: S
     { id: 'eat', name: 'Eat', emoji: '🍽️', color: 'from-orange-400 to-orange-600' },
     { id: 'work', name: 'Work', emoji: '💼', color: 'from-purple-400 to-purple-600' },
     { id: 'social', name: 'Social', emoji: '👥', color: 'from-pink-400 to-pink-600' }
-  ];
-
-  const socialActions = [
-    { 
-      id: 'makeNewFriend', 
-      name: 'Make New Friend', 
-      emoji: '🐱', 
-      color: 'from-pink-400 to-rose-500',
-      description: 'Find a new furry friend!',
-      reward: '25-75'
-    },
-    { 
-      id: 'playWithFriends', 
-      name: 'Play with Friends', 
-      emoji: '🎾', 
-      color: 'from-blue-400 to-cyan-500',
-      description: 'Have fun with existing friends!',
-      reward: '15-45'
-    },
-    { 
-      id: 'chatWithNeighbors', 
-      name: 'Chat with Neighbors', 
-      emoji: '🗣️', 
-      color: 'from-green-400 to-emerald-500',
-      description: 'Socialize with nearby pets!',
-      reward: '10-30'
-    },
-    { 
-      id: 'joinPlayground', 
-      name: 'Join Playground', 
-      emoji: '🎠', 
-      color: 'from-purple-400 to-violet-500',
-      description: 'Play at the community playground!',
-      reward: '40-120'
-    }
   ];
 
   const getStatColor = (value: number) => {
@@ -523,27 +486,261 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack }: S
             </motion.div>
 
             {/* Desktop: Right Panel - Activities */}
-            <ActivityRightPanel
-              currentActivity={currentActivity}
-              activities={activities}
-              onActivityClick={handleActivityClick}
-              actionItems={currentActivity === 'social' ? socialActions : undefined}
-              onActionClick={performSocialActivity}
-              isActionDisabled={isSocializing}
-              className="hidden lg:block"
-            />
+            <motion.div
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="hidden lg:block lg:w-72 xl:w-80 space-y-3 lg:max-h-[600px] lg:overflow-y-auto"
+            >
+              {/* Activities Header */}
+              <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                    <span className="text-white text-sm leading-none">🎮</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800">Activities</h3>
+                </div>
+              </div>
+
+              {/* Activity Buttons - Social Actions or Navigation */}
+              {currentActivity === 'social' ? (
+                // Social Activity Actions
+                [
+                  { 
+                    id: 'makeNewFriend', 
+                    name: 'Make New Friend', 
+                    emoji: '🐱', 
+                    color: 'from-pink-400 to-rose-500',
+                    description: 'Find a new furry friend!',
+                    reward: '25-75'
+                  },
+                  { 
+                    id: 'playWithFriends', 
+                    name: 'Play with Friends', 
+                    emoji: '🎾', 
+                    color: 'from-blue-400 to-cyan-500',
+                    description: 'Have fun with existing friends!',
+                    reward: '15-45'
+                  },
+                  { 
+                    id: 'chatWithNeighbors', 
+                    name: 'Chat with Neighbors', 
+                    emoji: '🗣️', 
+                    color: 'from-green-400 to-emerald-500',
+                    description: 'Socialize with nearby pets!',
+                    reward: '10-30'
+                  },
+                  { 
+                    id: 'joinPlayground', 
+                    name: 'Join Playground', 
+                    emoji: '🎠', 
+                    color: 'from-purple-400 to-violet-500',
+                    description: 'Play at the community playground!',
+                    reward: '40-120'
+                  }
+                ].map((socialActivity, index) => (
+                  <motion.button
+                    key={socialActivity.id}
+                    initial={{ x: 30, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => performSocialActivity(socialActivity.id)}
+                    disabled={isSocializing}
+                    className={`w-full flex flex-col gap-2 p-3 rounded-2xl border transition-all duration-300 ${
+                      isSocializing
+                        ? 'border-gray-300 bg-gray-100/80 opacity-50 cursor-not-allowed'
+                        : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-xl bg-gradient-to-r ${socialActivity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
+                        <span className="text-xl leading-none">{socialActivity.emoji}</span>
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className="text-sm font-bold text-gray-700 block">
+                          {socialActivity.name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {socialActivity.description}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-yellow-600">
+                          +{socialActivity.reward}
+                        </span>
+                        <span className="text-xs text-gray-500 block">coins</span>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))
+              ) : (
+                // Regular Navigation Activities
+                activities.map((activity, index) => {
+                  const isActive = currentActivity === activity.id;
+                  return (
+                    <motion.button
+                      key={activity.id}
+                      initial={{ x: 30, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                      whileHover={{ scale: 1.05, x: 5 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleActivityClick(activity.id)}
+                      disabled={isSocializing && activity.id === 'social'}
+                      className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 ${
+                        isActive
+                          ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
+                          : isSocializing && activity.id === 'social'
+                            ? 'border-gray-300 bg-gray-100/80 opacity-50 cursor-not-allowed'
+                            : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg'
+                      }`}
+                    >
+                      <div className={`h-10 w-10 rounded-xl bg-gradient-to-r ${activity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
+                        <span className="text-xl leading-none">{activity.emoji}</span>
+                      </div>
+                      <span className={`text-sm font-bold ${
+                        isActive ? 'text-purple-700' : 'text-gray-700'
+                      }`}>
+                        {activity.name}
+                      </span>
+
+                      {isActive && (
+                        <motion.div
+                          className="ml-auto w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <span className="text-white text-xs">✓</span>
+                        </motion.div>
+                      )}
+                    </motion.button>
+                  );
+                })
+              )}
+            </motion.div>
           </div>
 
           {/* Mobile: Activities Grid */}
-          <ActivityMobilePanel
-            currentActivity={currentActivity}
-            activities={activities}
-            onActivityClick={handleActivityClick}
-            actionItems={currentActivity === 'social' ? socialActions : undefined}
-            onActionClick={performSocialActivity}
-            isActionDisabled={isSocializing}
-            className="lg:hidden"
-          />
+          <div className="lg:hidden grid grid-cols-1 gap-2 mt-4">
+            {currentActivity === 'social' ? (
+              // Social Activity Actions
+              [
+                { 
+                  id: 'makeNewFriend', 
+                  name: 'Make New Friend', 
+                  emoji: '🐱', 
+                  color: 'from-pink-400 to-rose-500',
+                  description: 'Find a new furry friend!',
+                  reward: '25-75'
+                },
+                { 
+                  id: 'playWithFriends', 
+                  name: 'Play with Friends', 
+                  emoji: '🎾', 
+                  color: 'from-blue-400 to-cyan-500',
+                  description: 'Have fun with existing friends!',
+                  reward: '15-45'
+                },
+                { 
+                  id: 'chatWithNeighbors', 
+                  name: 'Chat with Neighbors', 
+                  emoji: '🗣️', 
+                  color: 'from-green-400 to-emerald-500',
+                  description: 'Socialize with nearby pets!',
+                  reward: '10-30'
+                },
+                { 
+                  id: 'joinPlayground', 
+                  name: 'Join Playground', 
+                  emoji: '🎠', 
+                  color: 'from-purple-400 to-violet-500',
+                  description: 'Play at the community playground!',
+                  reward: '40-120'
+                }
+              ].map((socialActivity, index) => (
+                <motion.button
+                  key={socialActivity.id}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => performSocialActivity(socialActivity.id)}
+                  disabled={isSocializing}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 ${
+                    isSocializing
+                      ? 'border-gray-300 bg-gray-100/80 opacity-50 cursor-not-allowed'
+                      : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg'
+                  }`}
+                >
+                  <div className={`h-10 w-10 rounded-lg bg-gradient-to-r ${socialActivity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
+                    <span className="text-lg leading-none">{socialActivity.emoji}</span>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <span className="text-sm font-bold text-gray-700 block">
+                      {socialActivity.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {socialActivity.description}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-bold text-yellow-600">
+                      +{socialActivity.reward}
+                    </span>
+                    <span className="text-xs text-gray-500 block">coins</span>
+                  </div>
+                </motion.button>
+              ))
+            ) : (
+              // Regular Navigation Activities
+              activities.slice(0, 4).map((activity, index) => {
+                const isActive = currentActivity === activity.id;
+                return (
+                  <motion.button
+                    key={activity.id}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleActivityClick(activity.id)}
+                    disabled={isSocializing && activity.id === 'social'}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 ${
+                      isActive
+                        ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
+                        : isSocializing && activity.id === 'social'
+                          ? 'border-gray-300 bg-gray-100/80 opacity-50 cursor-not-allowed'
+                          : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg'
+                    }`}
+                  >
+                    <div className={`h-10 w-10 rounded-lg bg-gradient-to-r ${activity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
+                      <span className="text-lg leading-none">{activity.emoji}</span>
+                    </div>
+                    <span className={`text-sm font-bold ${
+                      isActive ? 'text-purple-700' : 'text-gray-700'
+                    }`}>
+                      {activity.name}
+                    </span>
+
+                    {isActive && (
+                      <motion.div
+                        className="ml-auto w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <span className="text-white text-xs leading-none">✓</span>
+                      </motion.div>
+                    )}
+                  </motion.button>
+                );
+              })
+            )}
+          </div>
 
           {/* Bottom Tip - Compact */}
           <motion.div
