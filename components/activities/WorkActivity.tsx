@@ -1,99 +1,427 @@
 "use client"
 
-import { useState } from "react";
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface SleepActivityProps {
+interface PetStats {
+  happiness: number;
+  hunger: number;
+  energy: number;
+  work: number;
+  social: number;
+}
+
+interface WorkActivityProps {
+  onActivityChange: (activity: string) => void;
+  currentActivity: string;
+  userId?: string;
   onBack?: () => void;
 }
 
-const SleepActivity = ({ onBack }: SleepActivityProps) => {
-  const [isSleeping, setIsSleeping] = useState(false);
-  const [sleepTimer, setSleepTimer] = useState(0);
+const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack }: WorkActivityProps) => {
+  const [stats] = useState<PetStats>({
+    happiness: 75,
+    hunger: 60,
+    energy: 80,
+    work: 45,
+    social: 50
+  });
 
-  const roomObjects = [
-    { id: "closet", name: "Closet", emoji: "🚪", action: "Open" },
-    { id: "lamp", name: "Lamp", emoji: "💡", action: "Toggle" },
-    { id: "shop", name: "Shop", emoji: "🏪", action: "Buy" },
+  const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('tired');
+  const [coins] = useState(305);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isWorking, setIsWorking] = useState(false);
+  const [workTimer, setWorkTimer] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    // Determine pet mood based on stats
+    if (stats.hunger < 30) {
+      setPetMood('hungry');
+    } else if (stats.energy < 30) {
+      setPetMood('tired');
+    } else if (stats.happiness < 40) {
+      setPetMood('sad');
+    } else {
+      setPetMood('happy');
+    }
+  }, [stats]);
+
+  const activities = [
+    { id: 'home', name: 'Home', emoji: '🏠', color: 'from-emerald-400 to-emerald-600' },
+    { id: 'sleep', name: 'Sleep', emoji: '🌙', color: 'from-indigo-400 to-indigo-600' },
+    { id: 'eat', name: 'Eat', emoji: '🍽️', color: 'from-orange-400 to-orange-600' },
+    { id: 'work', name: 'Work', emoji: '💼', color: 'from-purple-400 to-purple-600' },
+    { id: 'social', name: 'Social', emoji: '👥', color: 'from-pink-400 to-pink-600' }
   ];
 
-  const handleObjectClick = (objectId: string) => {
-    if (objectId === "lamp") {
-      setIsSleeping(true);
-      setSleepTimer(8);
+  const getStatColor = (value: number) => {
+    if (value >= 70) return 'from-green-400 to-green-500';
+    if (value >= 40) return 'from-yellow-400 to-yellow-500';
+    return 'from-red-400 to-red-500';
+  };
+
+  const getMoodMessage = () => {
+    if (isWorking) {
+      return `Hard at work! 💪 (${workTimer}s)`;
+    }
+    switch (petMood) {
+      case 'hungry': return 'I\'m getting hungry! 🥺';
+      case 'tired': return 'Zzz... I need some rest 😴';
+      case 'sad': return 'I need some love and care 💔';
+      default: return 'Ready to be productive! 😸';
+    }
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const handleWork = () => {
+    if (currentActivity === 'work' && !isWorking) {
+      setIsWorking(true);
+      setWorkTimer(10);
 
       const interval = setInterval(() => {
-        setSleepTimer(prev => {
+        setWorkTimer(prev => {
           if (prev <= 1) {
-            setIsSleeping(false);
+            setIsWorking(false);
             clearInterval(interval);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
+    } else {
+      onActivityChange('work');
+    }
+  };
+
+  const handleActivityClick = (activityId: string) => {
+    if (activityId === 'work') {
+      handleWork();
+    } else {
+      onActivityChange(activityId);
     }
   };
 
   return (
-    <div className="min-h-screen bg-yellow-400 relative overflow-hidden">
-      {/* Top Navigation */}
-      <div className="flex justify-between items-center p-4 text-black">
-        <button
-          onClick={onBack}
-          className="p-3 rounded-full bg-black/20 hover:bg-black/30 border-2 border-black/20"
-        >
-          <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+    <div className="h-screen w-screen overflow-hidden relative flex flex-col">
+      {/* Background Image */}
+      <Image
+        src="/cats-for-use/backrounds/1.png"
+        alt="Cute game background"
+        fill
+        priority
+        className="object-cover object-center"
+      />
 
-        <div className="bg-black/20 px-6 py-2 rounded-full border-2 border-black/20 backdrop-blur-sm">
-          <h1 className="text-xl font-bold text-black">Bedroom</h1>
-        </div>
+      {/* Magical overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 via-blue-50/15 to-gray-100/20" />
 
-        <button className="p-3 rounded-full bg-black/20 hover:bg-black/30 border-2 border-black/20 opacity-50">
-          <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+      {/* Floating particles animation */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1.5 h-1.5 bg-purple-400/40 rounded-full"
+            initial={{
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800),
+              y: (typeof window !== 'undefined' ? window.innerHeight : 600) + 10
+            }}
+            animate={{
+              y: -10,
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800)
+            }}
+            transition={{
+              duration: Math.random() * 10 + 15,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+        ))}
       </div>
 
-      {/* Pillow/Bed Area */}
-      <div className="flex-1 flex items-center justify-center px-8 py-16 min-h-[60vh]">
-        <div className="relative">
-          <div className="w-48 h-32 bg-white rounded-[50px] shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] border-4 border-gray-200 relative">
-            <div className="absolute inset-2 bg-gray-50 rounded-[40px]"></div>
-            <div className="absolute inset-4 bg-white rounded-[30px]"></div>
-          </div>
+      {/* Main Container - Full Screen with Centered Content */}
+      <div className="relative z-10 flex flex-col h-full w-full">
 
-          {isSleeping && (
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-              <div className="text-6xl animate-pulse">💤</div>
-              <div className="text-center mt-2 bg-black/20 px-3 py-1 rounded-full border-2 border-black/20">
-                <span className="text-black font-bold text-sm">{sleepTimer}s</span>
+        {/* Content Wrapper - Centered within full screen */}
+        <div className="w-full h-full mx-auto flex flex-col px-6 py-4">
+          
+          {/* Compact Top Header */}
+          <motion.div
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex justify-between items-center mb-6 flex-shrink-0"
+          >
+          {/* Welcome & Time Combined with Back Button */}
+          <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-xl border border-white/40">
+            <div className="flex items-center gap-3">
+              {onBack && (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={onBack}
+                  className="h-8 w-8 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center"
+                >
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </motion.button>
+              )}
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                <span className="text-white text-sm">👋</span>
+              </div>
+              <div>
+                <p className="text-xs text-gray-700 font-medium">Hello, Roman-24</p>
+                <p className="text-sm font-bold text-gray-800">{formatTime(currentTime)}</p>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Bottom Objects */}
-      <div className="absolute bottom-0 left-0 right-0 bg-yellow-500/30 p-4">
-        <div className="flex justify-between items-end max-w-md mx-auto">
-          {roomObjects.map(obj => (
-            <button
-              key={obj.id}
-              onClick={() => handleObjectClick(obj.id)}
-              className="flex flex-col items-center gap-2 bg-white/80 hover:bg-white border-4 border-black rounded-3xl p-4 transition-all duration-200 hover:scale-110 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          {/* Coins Compact */}
+          <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-xl border border-white/40">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center">
+                <span className="text-white text-sm font-bold">💰</span>
+              </div>
+              <span className="text-lg font-bold text-gray-800">{coins.toLocaleString()}</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Main Content Area - Centered Layout */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-center py-4">
+
+          {/* Left Panel - Stats */}
+          <motion.div
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="w-full lg:w-72 xl:w-80 space-y-3 lg:max-h-[600px] overflow-y-auto"
+          >
+            {/* Stats Header */}
+            <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-6 w-6 rounded-lg bg-gradient-to-r from-emerald-400 to-teal-400 flex items-center justify-center">
+                  <span className="text-white text-xs">📊</span>
+                </div>
+                <h3 className="text-sm font-bold text-gray-800">Pet Stats</h3>
+              </div>
+            </div>
+
+            {/* Individual Stats */}
+            {[
+              { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
+              { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
+              { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
+              { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.key}
+                initial={{ x: -30, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-lg border border-white/40"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">{stat.icon}</span>
+                  <span className="text-xs font-semibold text-gray-700">{stat.label}</span>
+                </div>
+                <div className="relative">
+                  <div className="w-full bg-gray-200/60 rounded-full h-2">
+                    <motion.div
+                      className={`h-2 rounded-full bg-gradient-to-r ${getStatColor(stat.value)}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${stat.value}%` }}
+                      transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-gray-800 mt-1 block">{stat.value}%</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Center Panel - Pet Display */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex flex-col items-center justify-center relative flex-shrink-0"
+          >
+            {/* Pet Character - Working cat */}
+            <motion.div
+              className="relative mb-4"
+              animate={isWorking ? {
+                x: [0, 2, -2, 0],
+              } : {
+                y: [0, -8, 0],
+              }}
+              transition={{
+                duration: isWorking ? 0.5 : 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
             >
-              <div className="text-4xl">{obj.emoji}</div>
-              <span className="text-xs font-bold text-black text-center leading-tight">{obj.name}</span>
-            </button>
-          ))}
+              <Image
+                src="/cats-for-use/work/19-1.svg"
+                alt="Working Zutchi Cat"
+                width={280}
+                height={280}
+                className="drop-shadow-2xl"
+                priority
+              />
+
+              {/* Work effects - Progress indicators */}
+              <AnimatePresence>
+                {isWorking && (
+                  <>
+                    {[...Array(3)].map((_, i) => (
+                      <motion.div
+                        key={`work-${i}`}
+                        className="absolute text-2xl text-purple-600"
+                        initial={{
+                          x: 50 + i * 40,
+                          y: 60,
+                          opacity: 0,
+                          scale: 0.5
+                        }}
+                        animate={{
+                          x: 80 + i * 40,
+                          y: 40,
+                          opacity: [0, 1, 0],
+                          scale: [0.5, 1, 0.5]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          delay: i * 0.3,
+                          ease: "easeOut"
+                        }}
+                      >
+                        �
+                      </motion.div>
+                    ))}
+                  </>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Pet name tag - Updated for work */}
+            <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
+              <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                {isWorking ? 'Working Zutchi 💼' : 'Zutchi 2.0 ✨'}
+              </span>
+            </div>
+
+            {/* Pet Speech Bubble - Compact */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="relative"
+            >
+              <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-4 py-3 shadow-xl border border-white/40 max-w-xs">
+                <p className="text-sm font-semibold text-gray-800 text-center">{getMoodMessage()}</p>
+                {/* Speech bubble arrow */}
+                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white/90 rotate-45 border-l border-t border-white/40"></div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Right Panel - Activities */}
+          <motion.div
+            initial={{ x: 50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="w-full lg:w-72 xl:w-80 space-y-3 lg:max-h-[600px] overflow-y-auto"
+          >
+            {/* Activities Header */}
+            <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded-lg bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                  <span className="text-white text-xs">🎮</span>
+                </div>
+                <h3 className="text-sm font-bold text-gray-800">Activities</h3>
+              </div>
+            </div>
+
+            {/* Activity Buttons - Vertical */}
+            {activities.map((activity, index) => {
+              const isActive = currentActivity === activity.id;
+              return (
+                <motion.button
+                  key={activity.id}
+                  initial={{ x: 30, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                  whileHover={{ scale: 1.05, x: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleActivityClick(activity.id)}
+                  disabled={isWorking && activity.id === 'work'}
+                  className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 ${
+                    isActive
+                      ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
+                      : isWorking && activity.id === 'work'
+                        ? 'border-gray-300 bg-gray-100/80 opacity-50 cursor-not-allowed'
+                        : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg'
+                  }`}
+                >
+                  <div className={`h-10 w-10 rounded-xl bg-gradient-to-r ${activity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
+                    <span className="text-lg">{activity.emoji}</span>
+                  </div>
+                  <span className={`text-sm font-bold ${
+                    isActive ? 'text-purple-700' : 'text-gray-700'
+                  }`}>
+                    {activity.name}
+                  </span>
+
+                  {isActive && (
+                    <motion.div
+                      className="ml-auto w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <span className="text-white text-xs">✓</span>
+                    </motion.div>
+                  )}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        </div>
+
+        {/* Bottom Tip - Compact */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 1 }}
+          className="text-center mt-4 flex-shrink-0"
+        >
+          <div className="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-lg border border-white/40 inline-block">
+            <p className="text-xs text-gray-600 flex items-center gap-2">
+              <span>💼</span>
+              Click work to start being productive!
+              <span>💪</span>
+            </p>
+          </div>
+        </motion.div>
         </div>
       </div>
     </div>
   );
 };
 
-export default SleepActivity;
+export default WorkActivity;

@@ -23,13 +23,41 @@ const AppPage = () => {
   const renderActivity = () => {
     switch (currentActivity) {
       case 'sleep':
-        return <SleepActivity onBack={() => setCurrentActivity('home')} />;
+        return (
+          <SleepActivity 
+            onActivityChange={setCurrentActivity}
+            currentActivity={currentActivity}
+            userId={user?.id}
+            onBack={() => setCurrentActivity('home')} 
+          />
+        );
       case 'eat':
-        return <EatActivity onBack={() => setCurrentActivity('home')} />;
+        return (
+          <EatActivity 
+            onActivityChange={setCurrentActivity}
+            currentActivity={currentActivity}
+            userId={user?.id}
+            onBack={() => setCurrentActivity('home')} 
+          />
+        );
       case 'work':
-        return <WorkActivity onBack={() => setCurrentActivity('home')} />;
+        return (
+          <WorkActivity 
+            onActivityChange={setCurrentActivity}
+            currentActivity={currentActivity}
+            userId={user?.id}
+            onBack={() => setCurrentActivity('home')} 
+          />
+        );
       case 'social':
-        return <SocialActivity onBack={() => setCurrentActivity('home')} />;
+        return (
+          <SocialActivity 
+            onActivityChange={setCurrentActivity}
+            currentActivity={currentActivity}
+            userId={user?.id}
+            onBack={() => setCurrentActivity('home')} 
+          />
+        );
       default:
         return null;
     }
