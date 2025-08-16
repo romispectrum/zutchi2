@@ -1,10 +1,6 @@
 import { WalletApiRpcResponseType } from "@privy-io/public-api";
 import type { NextApiRequest, NextApiResponse } from "next";
-import {
-  APIError,
-  fetchAndVerifyAuthorization,
-  createPrivyClient,
-} from "../../../lib/utils";
+import {APIError, createPrivyClient, fetchAndVerifyAuthorization} from "@/lib/privy";
 
 const client = createPrivyClient();
 
