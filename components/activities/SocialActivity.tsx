@@ -118,8 +118,8 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack }: S
     <div className="h-screen w-screen overflow-hidden relative flex flex-col">
       {/* Background Image */}
       <Image
-        src="/cats-for-use/backrounds/1.png"
-        alt="Cute game background"
+        src="/backgrounds/Social.png"
+        alt="Social background"
         fill
         priority
         className="object-cover object-center"

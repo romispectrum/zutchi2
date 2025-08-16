@@ -118,8 +118,8 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
     <div className="h-screen w-screen overflow-hidden relative flex flex-col">
       {/* Background Image */}
       <Image
-        src="/cats-for-use/backrounds/1.png"
-        alt="Cute game background"
+        src="/backgrounds/Food.png"
+        alt="Food background"
         fill
         priority
         className="object-cover object-center"
