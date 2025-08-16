@@ -81,20 +81,20 @@ export default function LandingPage() {
             </Button>
           </motion.div>
           <motion.div
-  initial={{ y: 12, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.1 }}
-  className="mt-6"
->
-  <Image
-    src="/zutchi-cat.png"          // put your file in /public with this name
-    alt="Zutchi cat"
-    width={240}
-    height={360}
-    priority={false}
-    className="w-56 md:w-72 h-auto drop-shadow-[0_6px_24px_rgba(0,0,0,0.25)] pointer-events-none select-none"
-  />
-</motion.div>
+            initial={{ y: 12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.1 }}
+            className="mt-6"
+          >
+            <Image
+              src="/cats-for-use/home/V87.png"          // put your file in /public with this name
+              alt="Zutchi cat"
+              width={240}
+              height={360}
+              priority={false}
+              className="w-56 md:w-72 h-auto drop-shadow-[0_6px_24px_rgba(0,0,0,0.25)] pointer-events-none select-none"
+            />
+          </motion.div>
 
         </div>
       </div>
@@ -102,9 +102,11 @@ export default function LandingPage() {
       {/* ===== LEARN / FAQ / CONTACT ===== */}
       <section id="learn" className="relative scroll-mt-24 text-black min-h-[70vh]">
         {/* Scenic background */}
-        <div
-          aria-hidden="true"
-    className="absolute inset-0 -z-20 bg-[url('/V78.png')] bg-no-repeat bg-right-bottom bg-contain"
+        <Image
+          src="/design.png"
+          alt="Zutchi learn background"
+          fill
+          className="pointer-events-none -z-10 object-cover object-right"
         />
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-white/78 via-white/70 to-white/62" />
 
