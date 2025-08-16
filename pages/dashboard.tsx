@@ -44,7 +44,7 @@ export default function DashboardPage() {
   const email = user?.email;
   const phone = user?.phone;
   const wallet = user?.wallet;
-  
+
   return (
     <>
       <Head>
