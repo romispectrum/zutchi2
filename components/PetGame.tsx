@@ -92,7 +92,7 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
   };
 
   return (
-    <div className="min-h-screen w-full relative">
+    <div className="h-screen w-full relative overflow-hidden">
       {/* Background Image */}
       <Image
         src="/backgrounds/home.png"
@@ -128,224 +128,222 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
         ))}
       </div>
 
-      {/* Scrollable Main Container */}
-      <div className="relative z-10 min-h-screen">
-        <div className="container mx-auto px-4 py-6 space-y-6">
-
-          {/* Top Header - Always Visible */}
-          <motion.div
-            initial={{ y: -30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col gap-3"
-          >
-            {/* First Row: Welcome, Time, and User Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-start">
-              {/* Welcome & Time Combined */}
-              <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-3 py-2 shadow-xl border border-white/40">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
-                    <span className="text-white text-sm">👋</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">{formatTime(currentTime)}</p>
-                  </div>
+      {/* Fixed Main Container - No scrolling on desktop */}
+      <div className="relative z-10 h-screen flex flex-col">
+        {/* Top Header - Fixed height */}
+        <motion.div
+          initial={{ y: -30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex-shrink-0 px-6 py-4"
+        >
+          <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-start">
+            {/* Welcome & Time Combined */}
+            <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-3 py-2 shadow-xl border border-white/40">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                  <span className="text-white text-sm">👋</span>
                 </div>
-              </div>
-
-              {/* User Actions Stack */}
-              <div className="flex flex-col gap-2 sm:items-end">
-                {/* Coins */}
-                <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-3 py-2 shadow-xl border border-white/40">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">💰</span>
-                    </div>
-                    <span className="text-lg font-bold text-gray-800">{coins.toLocaleString()}</span>
-                  </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-800">{formatTime(currentTime)}</p>
                 </div>
-
-                {/* Logout Button */}
-                {onLogout && (
-                  <button
-                    onClick={onLogout}
-                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 rounded-xl border border-red-400 text-xs font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    Logout
-                  </button>
-                )}
               </div>
             </div>
-          </motion.div>
 
-          {/* Mobile Layout - Visible on screens smaller than lg */}
-          <div className="lg:hidden space-y-6">
-            {/* Mobile Stats Grid (2x2) */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="grid grid-cols-2 gap-3"
-            >
-              {[
-                { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
-                { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
-                { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
-                { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
-              ].map((stat, index) => {
-                const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
-                return (
-                  <motion.div
-                    key={stat.key}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                    className={`bg-gradient-to-r backdrop-blur-lg rounded-xl p-3 shadow-lg border transition-all duration-300 ${
-                      isRelevant
-                        ? 'from-white/90 to-white/80 border-white/40'
-                        : 'from-gray-300/60 to-gray-400/60 border-gray-300/40 opacity-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-lg transition-all duration-300 ${isRelevant ? '' : 'grayscale opacity-70'}`}>
-                        {stat.icon}
-                      </span>
-                      <span className={`text-xs font-semibold transition-all duration-300 ${
-                        isRelevant ? 'text-gray-700' : 'text-gray-500'
-                      }`}>
-                        {stat.label}
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <div className="w-full bg-gray-200/60 rounded-full h-2">
-                        <motion.div
-                          className={`h-2 rounded-full bg-gradient-to-r transition-all duration-300 ${
-                            isRelevant ? getStatColor(stat.value) : 'from-gray-400 to-gray-500'
-                          }`}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${stat.value}%` }}
-                          transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
-                        />
-                      </div>
-                      <span className={`text-xs font-bold mt-1 block transition-all duration-300 ${
-                        isRelevant ? 'text-gray-800' : 'text-gray-500'
-                      }`}>
-                        {stat.value}%
-                      </span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-
-            {/* Mobile Pet Display */}
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="flex flex-col items-center justify-center relative"
-            >
-              {/* Pet Character */}
-              <motion.div
-                className="relative mb-4"
-                animate={{
-                  y: [0, -8, 0],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                <Image
-                  src="/cats-for-use/home/V54.png"
-                  alt="Zutchi Cat"
-                  width={200}
-                  height={200}
-                  className="drop-shadow-2xl sm:w-[240px] sm:h-[240px]"
-                  priority
-                />
-              </motion.div>
-
-              {/* Pet name tag */}
-              <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
-                <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Zutchi 2.0 ✨
-                </span>
+            {/* User Actions Stack */}
+            <div className="flex flex-col gap-2 sm:items-end">
+              {/* Coins */}
+              <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-3 py-2 shadow-xl border border-white/40">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">💰</span>
+                  </div>
+                  <span className="text-lg font-bold text-gray-800">{coins.toLocaleString()}</span>
+                </div>
               </div>
 
-              {/* Pet Speech Bubble */}
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                className="relative"
-              >
-                <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-4 py-3 shadow-xl border border-white/40 max-w-xs">
-                  <p className="text-sm font-semibold text-gray-800 text-center">{getMoodMessage()}</p>
-                  {/* Speech bubble arrow */}
-                  <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white/90 rotate-45 border-l border-t border-white/40"></div>
-                </div>
-              </motion.div>
-            </motion.div>
-
-            {/* Mobile Activities Grid (2x2) */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="grid grid-cols-2 gap-3"
-            >
-              {activities.slice(1).map((activity, index) => {
-                const isActive = currentActivity === activity.id;
-                return (
-                  <motion.button
-                    key={activity.id}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => onActivityChange(activity.id)}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-300 touch-manipulation ${
-                      isActive
-                        ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
-                        : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg active:scale-95'
-                    }`}
-                  >
-                    <div className={`h-12 w-12 rounded-xl bg-gradient-to-r ${activity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
-                      <span className="text-2xl leading-none">{activity.emoji}</span>
-                    </div>
-                    <span className={`text-sm font-bold ${
-                      isActive ? 'text-purple-700' : 'text-gray-700'
-                    }`}>
-                      {activity.name}
-                    </span>
-
-                    {isActive && (
-                      <motion.div
-                        className="w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <span className="text-white text-xs">✓</span>
-                      </motion.div>
-                    )}
-                  </motion.button>
-                );
-              })}
-            </motion.div>
+              {/* Logout Button */}
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 rounded-xl border border-red-400 text-xs font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  Logout
+                </button>
+              )}
+            </div>
           </div>
+        </motion.div>
 
-          {/* Desktop Layout - Show on large screens */}
-          <div className="hidden lg:flex gap-6 items-start justify-center">
+        {/* Mobile Layout - Visible on screens smaller than lg */}
+        <div className="lg:hidden flex-1 px-6 pb-6 space-y-4 overflow-y-auto">
+          {/* Mobile Stats Grid (2x2) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="grid grid-cols-2 gap-3"
+          >
+            {[
+              { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
+              { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
+              { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
+              { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
+            ].map((stat, index) => {
+              const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
+              return (
+                <motion.div
+                  key={stat.key}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                  className={`bg-gradient-to-r backdrop-blur-lg rounded-xl p-3 shadow-lg border transition-all duration-300 ${
+                    isRelevant
+                      ? 'from-white/90 to-white/80 border-white/40'
+                      : 'from-gray-300/60 to-gray-400/60 border-gray-300/40 opacity-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`text-lg transition-all duration-300 ${isRelevant ? '' : 'grayscale opacity-70'}`}>
+                      {stat.icon}
+                    </span>
+                    <span className={`text-xs font-semibold transition-all duration-300 ${
+                      isRelevant ? 'text-gray-700' : 'text-gray-500'
+                    }`}>
+                      {stat.label}
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <div className="w-full bg-gray-200/60 rounded-full h-2">
+                      <motion.div
+                        className={`h-2 rounded-full bg-gradient-to-r transition-all duration-300 ${
+                          isRelevant ? getStatColor(stat.value) : 'from-gray-400 to-gray-500'
+                        }`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${stat.value}%` }}
+                        transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
+                      />
+                    </div>
+                    <span className={`text-xs font-bold mt-1 block transition-all duration-300 ${
+                      isRelevant ? 'text-gray-800' : 'text-gray-500'
+                    }`}>
+                      {stat.value}%
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
+          {/* Mobile Pet Display */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex flex-col items-center justify-center relative flex-1 min-h-[300px]"
+          >
+            {/* Pet Character */}
+            <motion.div
+              className="relative mb-4"
+              animate={{
+                y: [0, -8, 0],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <Image
+                src="/cats-for-use/home/V54.png"
+                alt="Zutchi Cat"
+                width={200}
+                height={200}
+                className="drop-shadow-2xl sm:w-[240px] sm:h-[240px]"
+                priority
+              />
+            </motion.div>
+
+            {/* Pet name tag */}
+            <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
+              <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Zutchi 2.0 ✨
+              </span>
+            </div>
+
+            {/* Pet Speech Bubble */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="relative"
+            >
+              <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-4 py-3 shadow-xl border border-white/40 max-w-xs">
+                <p className="text-sm font-semibold text-gray-800 text-center">{getMoodMessage()}</p>
+                {/* Speech bubble arrow */}
+                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white/90 rotate-45 border-l border-t border-white/40"></div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Mobile Activities Grid (2x2) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="grid grid-cols-2 gap-3"
+          >
+            {activities.slice(1).map((activity, index) => {
+              const isActive = currentActivity === activity.id;
+              return (
+                <motion.button
+                  key={activity.id}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => onActivityChange(activity.id)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-300 touch-manipulation ${
+                    isActive
+                      ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
+                      : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg active:scale-95'
+                  }`}
+                >
+                  <div className={`h-12 w-12 rounded-xl bg-gradient-to-r ${activity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
+                    <span className="text-2xl leading-none">{activity.emoji}</span>
+                  </div>
+                  <span className={`text-sm font-bold ${
+                    isActive ? 'text-purple-700' : 'text-gray-700'
+                  }`}>
+                    {activity.name}
+                  </span>
+
+                  {isActive && (
+                    <motion.div
+                      className="w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <span className="text-white text-xs">✓</span>
+                    </motion.div>
+                  )}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        </div>
+
+        {/* Desktop Layout - Fixed height, no scrolling */}
+        <div className="hidden lg:flex flex-1 px-6 pb-6">
+          <div className="w-full flex gap-12 items-start justify-center">
             {/* Left Panel - Stats (Desktop) */}
             <motion.div
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="w-72 xl:w-80 space-y-3 max-h-[600px] overflow-y-auto"
+              className="w-72 xl:w-80 space-y-3 flex-shrink-0"
             >
               {/* Stats Header */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
@@ -409,12 +407,12 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
               })}
             </motion.div>
 
-            {/* Center Panel - Pet Display (Desktop) */}
+            {/* Center Panel - Pet Display (Desktop) - Fixed positioning */}
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="flex flex-col items-center justify-center relative"
+              className="flex flex-col items-center justify-center relative flex-1 max-w-md"
             >
               {/* Pet Character */}
               <motion.div
@@ -465,7 +463,7 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="w-72 xl:w-80 space-y-3 max-h-[600px] overflow-y-auto"
+              className="w-72 xl:w-80 space-y-3 flex-shrink-0"
             >
               {/* Activities Header */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
@@ -519,24 +517,24 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
               })}
             </motion.div>
           </div>
-
-          {/* Bottom Tip */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1 }}
-            className="text-center"
-          >
-            <div className="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-lg border border-white/40 inline-block">
-              <p className="text-xs text-gray-600 flex items-center gap-2">
-                <span>💡</span>
-                <span className="hidden sm:inline">Balance all stats for maximum happiness!</span>
-                <span className="sm:hidden">Keep your pet happy!</span>
-                <span>🌟</span>
-              </p>
-            </div>
-          </motion.div>
         </div>
+
+        {/* Bottom Tip - Fixed position */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 1 }}
+          className="flex-shrink-0 text-center pb-1"
+        >
+          <div className="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-lg border border-white/40 inline-block">
+            <p className="text-xs text-gray-600 flex items-center gap-2">
+              <span>💡</span>
+              <span className="hidden sm:inline">Balance all stats for maximum happiness!</span>
+              <span className="sm:hidden">Keep your pet happy!</span>
+              <span>🌟</span>
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
