@@ -31,10 +31,7 @@ describe("Zutchi", function () {
     await zircuitToken.transfer(user2.address, 10000);
     await zircuitToken.transfer(user3.address, 10000);
     await zircuitToken.transfer(user4.address, 10000);
-    
-    console.log("User1 ZIRCUIT balance:", ethers.formatEther(await zircuitToken.balanceOf(user1.address)));
-    console.log("User2 ZIRCUIT balance:", ethers.formatEther(await zircuitToken.balanceOf(user2.address)));
-  });
+ });
 
 
   describe("Deployment", function () {
@@ -259,14 +256,49 @@ describe("Zutchi", function () {
     })
   })
 
-  describe("Hunger", function () {
-    it("Should not allow to work or sleep while starving", async function () {
-      await mineBlocks(300001);
-      const attr = await zutchi.getZutchiAttributes(13);
-      await expect(zutchi.connect(user1).putToSleep(13, 100)).to.be.revertedWith("hungry")
+  describe("Social", function () {
+    it("Should send a fren request", async function () {
+      await zutchi.connect(owner).addFren(1, 2);
+      const fren = await zutchi.getZutchiAttributes(2)
+      expect(fren.potentialFrens[0]).to.equal(1);
+    })
+
+    it("Should display the fren request", async function () {
+      const PF = await zutchi.connect(user1).getPotetionalFrens(2);
+      expect(PF[0]).to.equal(1);
+    })
+
+    it("Should accept the fren request", async function () {
+      const PF = await zutchi.connect(user1).getPotetionalFrens(2);
+      const success = await zutchi.connect(user1).acceptFren(2, Number(PF[0]))
+      const fren = await zutchi.getZutchiAttributes(1)
+      expect(fren.frens[0]).to.equal(2);
+    })
+
+    it("Should display frens", async function () {
+      const PF = await zutchi.connect(user1).getFrens(2);
+      expect(PF[0]).to.equal(1)
+    })
+
+    it("Should decline the fren request", async function () {
+      await zutchi.connect(user2).addFren(3, 4);
+
+      const PF = await zutchi.connect(user2).getPotetionalFrens(4);
+      const success = await zutchi.connect(user2).declineFren(2, Number(PF[0]))
+      const fren = await zutchi.getZutchiAttributes(1)
+      expect(fren.potentialFrens.length).to.equal(0);
+      expect(fren.frens.length).to.equal(1);
     })
   })
 
+  
+  describe("Hunger", function () {
+    it("Should not allow to work or sleep while starving", async function () {
+      await mineBlocks(300001);
+      await expect(zutchi.connect(user1).putToSleep(13, 100)).to.be.revertedWith("hungry")
+    })
+  })
+  
   describe("Ownership", function () {
     it("Should allow owner to burn tokens", async function () {
       const initialSupply = await zutchi.totalSupply();
@@ -281,9 +313,9 @@ describe("Zutchi", function () {
     it("Only Owner can withdraw", async function() {
       await expect(zutchi.connect(user1).withdrawZRC()).to.be.revertedWith("notOwner");
     })
-
-   
   });
+
+  
 
   describe("Base URI", function () {
     it("Should allow owner to set base URI", async function () {

@@ -32,6 +32,8 @@ contract Zutchi is ERC721, Ownable {
         uint256 hungryAtBlock;
         uint256 lastAteAt;
         uint256 nutrition;
+        uint256[] frens;
+        uint256[] potentialFrens;
     }
 
     mapping(uint256 => ZutchiData) public zutchis;
@@ -75,7 +77,9 @@ contract Zutchi is ERC721, Ownable {
             freeAtBlock: 0,
             hungryAtBlock: block.number+100000,
             lastAteAt: block.number,
-            nutrition: 50
+            nutrition: 50,
+            frens: new uint256[](0),
+            potentialFrens: new uint256[](0)
         });
         
         emit TokenMinted(msg.sender, newTokenId);
@@ -202,6 +206,63 @@ contract Zutchi is ERC721, Ownable {
         }
         return balance == 0;
     }
+
+    function getFrens(uint256 tokenId) public view returns (uint256[] memory) {
+        return zutchis[tokenId].frens;
+    }
+
+    function getPotetionalFrens(uint256 tokenId) public view returns (uint256[] memory) {
+        return zutchis[tokenId].potentialFrens;
+    }
+
+    function addFren(uint256 tokenId, uint256 frenId) public {
+        require(msg.sender == ownerOf(tokenId), "notOwner");
+        require(frenId <= _totalSupply, "Fren token does not exist");
+        zutchis[frenId].potentialFrens.push(tokenId);
+    }
+
+    function acceptFren(uint256 tokenId, uint256 frenId) public returns (bool) {
+        require(msg.sender == ownerOf(tokenId), "notOwner");
+        require(frenId <= _totalSupply, "Fren token does not exist");
+        
+        uint256[] storage potentialFrens = zutchis[tokenId].potentialFrens;
+        uint256 PFL = potentialFrens.length;
+        
+        for (uint256 i = 0; i < PFL; i++) {
+            if (potentialFrens[i] == frenId) {
+                // Remove from potential frens
+                potentialFrens[i] = potentialFrens[PFL-1];
+                potentialFrens.pop();
+                
+                // Add to frens for both tokens
+                zutchis[tokenId].frens.push(frenId);
+                zutchis[frenId].frens.push(tokenId);
+                
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function declineFren(uint256 frenId, uint256 tokenId) public returns (bool) {
+        require(msg.sender == ownerOf(tokenId), "notOwner");
+        require(frenId <= _totalSupply, "Fren token does not exist");
+        
+        uint256[] storage potentialFrens = zutchis[tokenId].potentialFrens;
+        uint256 PFL = potentialFrens.length;
+        
+        for (uint256 i = 0; i < PFL; i++) {
+            if (potentialFrens[i] == frenId) {
+                // Remove from potential frens
+                potentialFrens[i] = potentialFrens[PFL - 1];
+                potentialFrens.pop();
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 
 
 
