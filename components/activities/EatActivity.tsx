@@ -192,7 +192,6 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack }: EatA
                   <span className="text-white text-sm">👋</span>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-700 font-medium">Hello, Roman-24</p>
                   <p className="text-sm font-bold text-gray-800">{formatTime(currentTime)}</p>
                 </div>
               </div>

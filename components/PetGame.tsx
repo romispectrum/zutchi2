@@ -148,7 +148,6 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
                     <span className="text-white text-sm">👋</span>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-700 font-medium">Hello, {user?.id?.slice(0, 10) || 'Player'}...</p>
                     <p className="text-sm font-bold text-gray-800">{formatTime(currentTime)}</p>
                   </div>
                 </div>
