@@ -37,7 +37,7 @@ export default function LandingPage() {
       </Head>
 
       {/* HERO */}
-      <div className="relative min-h-screen text-white">
+      <div className="relative isolate min-h-screen text-white">
         {/* Background art */}
         <Image
           src="/zutchi-landing.png"
@@ -87,7 +87,7 @@ export default function LandingPage() {
             className="mt-6"
           >
             <Image
-              src="/cats-for-use/home/V87.png"          // put your file in /public with this name
+              src="/cats-for-use/home/V87.png" // put your file in /public with this name
               alt="Zutchi cat"
               width={240}
               height={360}
@@ -95,20 +95,26 @@ export default function LandingPage() {
               className="w-56 md:w-72 h-auto drop-shadow-[0_6px_24px_rgba(0,0,0,0.25)] pointer-events-none select-none"
             />
           </motion.div>
-
         </div>
       </div>
 
       {/* ===== LEARN / FAQ / CONTACT ===== */}
-      <section id="learn" className="relative scroll-mt-24 text-black min-h-[70vh]">
-        {/* Scenic background */}
-        <Image
-          src="/design.png"
-          alt="Zutchi learn background"
-          fill
-          className="pointer-events-none -z-10 object-cover object-right"
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-white/78 via-white/70 to-white/62" />
+      <section
+        id="learn"
+        className="relative isolate scroll-mt-24 text-black min-h-[70vh]"
+      >
+        {/* Background stack (behind everything in this section) */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/design.png"
+            alt="Zutchi learn background"
+            fill
+            className="pointer-events-none object-cover object-right"
+            priority={false}
+          />
+          {/* Gradient wash above the image but still behind content */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/72 to-white/64" />
+        </div>
 
         <div className="relative mx-auto max-w-6xl px-2 lg:px-6 py-8 lg:py-16 space-y-8 lg:space-y-16">
           {/* ====== THE PROBLEM & SOLUTION ====== */}
@@ -209,13 +215,15 @@ export default function LandingPage() {
           {/* ====== FAQ ====== */}
           <div className="grid gap-6 lg:gap-10 md:grid-cols-3">
             <aside className="md:col-span-1">
-              <h2 className="text-3xl lg:text-4xl font-bold leading-tight">FAQ</h2>
-              <p className="mt-3 text-zinc-700">
-                The most common questions—kept short and clear.
-              </p>
+              <div className="rounded-xl lg:rounded-2xl border border-zinc-200 bg-white/90 p-4 lg:p-6 shadow-sm backdrop-blur">
+                <h2 className="text-3xl lg:text-4xl font-bold leading-tight">FAQ</h2>
+                <p className="mt-3 text-zinc-700">
+                  The most common questions—kept short and clear.
+                </p>
+              </div>
             </aside>
 
-            <div className="md:col-span-2 rounded-xl lg:rounded-2xl border border-zinc-200 bg-white/90 shadow-sm backdrop-blur">
+            <div className="md:col-span-2 relative z-10 rounded-xl lg:rounded-2xl border border-zinc-200 bg-white/90 shadow-sm backdrop-blur">
               <dl className="divide-y divide-zinc-300">
                 <div className="px-4 lg:px-6 py-4 lg:py-5">
                   <dt className="text-sm lg:text-base font-medium">Who can play Zutchi?</dt>
