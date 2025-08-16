@@ -1,9 +1,8 @@
 import Head from "next/head";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useLogin } from "@privy-io/react-auth";
-import { Play, Twitter, Mail, ExternalLink, Users } from "lucide-react";
+import { Play, Twitter, Mail, Users } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -62,7 +61,7 @@ export default function LandingPage() {
             Play. Earn. Socialize. Educate. Your digital pet, brought to life!
           </p>
 
-          {/* Join Telegram Button */}
+          {/* Play/Login Button (Privy) */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -72,10 +71,10 @@ export default function LandingPage() {
             <Button
               size="lg"
               className="px-8 bg-zutchi-green text-white hover:bg-zutchi-moss"
-              onClick={() => window.open("https://t.me/+mbnWmN610sVlNDNh", "_blank")}
+              onClick={login}
             >
-              <Users className="mr-2 h-5 w-5" />
-              Join Telegram
+              <Play className="mr-2 h-5 w-5" />
+              Play
             </Button>
           </motion.div>
         </div>
