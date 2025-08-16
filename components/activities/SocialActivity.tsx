@@ -66,6 +66,15 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack }: S
     { id: 'social', name: 'Social', emoji: '👥', color: 'from-pink-400 to-pink-600' }
   ];
 
+  // Mapping of activities to their relevant stats
+  const activityStatsMapping: Record<string, string[]> = {
+    'home': ['happiness', 'hunger', 'energy', 'work'], // Show all stats on home
+    'sleep': ['energy'], // Sleep primarily affects energy
+    'eat': ['hunger'], // Eating affects hunger/fullness
+    'work': ['work'], // Work affects focus/work stat
+    'social': ['happiness'] // Social activities affect happiness
+  };
+
   const socialActions = [
     { 
       id: 'makeNewFriend', 
@@ -307,31 +316,50 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack }: S
               { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
               { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
               { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.key}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.1 + index * 0.05 }}
-                className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-lg p-2 shadow-lg border border-white/40"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg leading-none">{stat.icon}</span>
-                  <span className="text-xs font-semibold text-gray-700">{stat.label}</span>
-                </div>
-                <div className="relative">
-                  <div className="w-full bg-gray-200/60 rounded-full h-1.5">
-                    <motion.div
-                      className={`h-1.5 rounded-full bg-gradient-to-r ${getStatColor(stat.value)}`}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${stat.value}%` }}
-                      transition={{ duration: 1, delay: 0.3 + index * 0.05 }}
-                    />
+            ].map((stat, index) => {
+              const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
+              return (
+                <motion.div
+                  key={stat.key}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.1 + index * 0.05 }}
+                  className={`bg-gradient-to-r backdrop-blur-lg rounded-lg p-2 shadow-lg border transition-all duration-300 ${
+                    isRelevant
+                      ? 'from-white/90 to-white/80 border-white/40'
+                      : 'from-gray-300/60 to-gray-400/60 border-gray-300/40 opacity-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-lg leading-none transition-all duration-300 ${isRelevant ? '' : 'grayscale opacity-70'}`}>
+                      {stat.icon}
+                    </span>
+                    <span className={`text-xs font-semibold transition-all duration-300 ${
+                      isRelevant ? 'text-gray-700' : 'text-gray-500'
+                    }`}>
+                      {stat.label}
+                    </span>
                   </div>
-                  <span className="text-xs font-bold text-gray-800 mt-1 block">{stat.value}%</span>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="relative">
+                    <div className="w-full bg-gray-200/60 rounded-full h-1.5">
+                      <motion.div
+                        className={`h-1.5 rounded-full bg-gradient-to-r transition-all duration-300 ${
+                          isRelevant ? getStatColor(stat.value) : 'from-gray-400 to-gray-500'
+                        }`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${stat.value}%` }}
+                        transition={{ duration: 1, delay: 0.3 + index * 0.05 }}
+                      />
+                    </div>
+                    <span className={`text-xs font-bold mt-1 block transition-all duration-300 ${
+                      isRelevant ? 'text-gray-800' : 'text-gray-500'
+                    }`}>
+                      {stat.value}%
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
           {/* Main Content Area - Responsive Layout */}
@@ -360,31 +388,50 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack }: S
                 { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
                 { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
                 { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
-              ].map((stat, index) => (
-                <motion.div
-                  key={stat.key}
-                  initial={{ x: -30, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                  className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-lg border border-white/40"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl leading-none">{stat.icon}</span>
-                    <span className="text-xs font-semibold text-gray-700">{stat.label}</span>
-                  </div>
-                  <div className="relative">
-                    <div className="w-full bg-gray-200/60 rounded-full h-2">
-                      <motion.div
-                        className={`h-2 rounded-full bg-gradient-to-r ${getStatColor(stat.value)}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${stat.value}%` }}
-                        transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
-                      />
+              ].map((stat, index) => {
+                const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
+                return (
+                  <motion.div
+                    key={stat.key}
+                    initial={{ x: -30, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                    className={`bg-gradient-to-r backdrop-blur-lg rounded-2xl p-3 shadow-lg border transition-all duration-300 ${
+                      isRelevant
+                        ? 'from-white/90 to-white/80 border-white/40'
+                        : 'from-gray-300/60 to-gray-400/60 border-gray-300/40 opacity-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-xl leading-none transition-all duration-300 ${isRelevant ? '' : 'grayscale opacity-70'}`}>
+                        {stat.icon}
+                      </span>
+                      <span className={`text-xs font-semibold transition-all duration-300 ${
+                        isRelevant ? 'text-gray-700' : 'text-gray-500'
+                      }`}>
+                        {stat.label}
+                      </span>
                     </div>
-                    <span className="text-xs font-bold text-gray-800 mt-1 block">{stat.value}%</span>
-                  </div>
-                </motion.div>
-              ))}
+                    <div className="relative">
+                      <div className="w-full bg-gray-200/60 rounded-full h-2">
+                        <motion.div
+                          className={`h-2 rounded-full bg-gradient-to-r transition-all duration-300 ${
+                            isRelevant ? getStatColor(stat.value) : 'from-gray-400 to-gray-500'
+                          }`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${stat.value}%` }}
+                          transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
+                        />
+                      </div>
+                      <span className={`text-xs font-bold mt-1 block transition-all duration-300 ${
+                        isRelevant ? 'text-gray-800' : 'text-gray-500'
+                      }`}>
+                        {stat.value}%
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
 
               {/* Friends Counter */}
               <motion.div
