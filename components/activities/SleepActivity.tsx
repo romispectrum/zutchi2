@@ -151,16 +151,19 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack }: Sl
         ))}
       </div>
 
-      {/* Main Container - No Scroll */}
-      <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 py-3">
+      {/* Main Container - Full Screen with Centered Content */}
+      <div className="relative z-10 flex flex-col h-full w-full">
 
-        {/* Compact Top Header */}
-        <motion.div
-          initial={{ y: -30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="flex justify-between items-center mb-3"
-        >
+        {/* Content Wrapper - Centered within full screen */}
+        <div className="w-full h-full mx-auto flex flex-col px-6 py-4">
+          
+          {/* Compact Top Header */}
+          <motion.div
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex justify-between items-center mb-6 flex-shrink-0"
+          >
           {/* Welcome & Time Combined with Back Button */}
           <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-xl border border-white/40">
             <div className="flex items-center gap-3">
@@ -197,15 +200,15 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack }: Sl
           </div>
         </motion.div>
 
-        {/* Main Content Area - Grid Layout */}
-        <div className="flex-1 grid grid-cols-12 gap-4">
+        {/* Main Content Area - Centered Layout */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-center py-4">
 
           {/* Left Panel - Stats */}
           <motion.div
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="col-span-3 space-y-3"
+            className="w-full lg:w-72 xl:w-80 space-y-3 lg:max-h-[600px] overflow-y-auto"
           >
             {/* Stats Header */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
@@ -255,7 +258,7 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack }: Sl
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="col-span-6 flex flex-col items-center justify-center relative"
+            className="flex flex-col items-center justify-center relative flex-shrink-0"
           >
             {/* Pet Character - Changed to sleeping cat */}
             <motion.div
@@ -342,7 +345,7 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack }: Sl
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="col-span-3 space-y-3"
+            className="w-full lg:w-72 xl:w-80 space-y-3 lg:max-h-[600px] overflow-y-auto"
           >
             {/* Activities Header */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
@@ -405,7 +408,7 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack }: Sl
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 1 }}
-          className="text-center mt-3"
+          className="text-center mt-4 flex-shrink-0"
         >
           <div className="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-lg border border-white/40 inline-block">
             <p className="text-xs text-gray-600 flex items-center gap-2">
@@ -415,6 +418,7 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack }: Sl
             </p>
           </div>
         </motion.div>
+        </div>
       </div>
     </div>
   );

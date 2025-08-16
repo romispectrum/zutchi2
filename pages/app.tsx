@@ -58,10 +58,8 @@ const AppPage = () => {
   // Activity view
   if (currentActivity !== 'home') {
     return (
-      <div className="min-h-screen">
-        <div className="max-w-md mx-auto">
-          {renderActivity()}
-        </div>
+      <div className="w-full h-screen">
+        {renderActivity()}
       </div>
     );
   }
