@@ -62,7 +62,7 @@ export default function LandingPage() {
             Play. Earn. Socialize. Educate. Your digital pet, brought to life!
           </p>
 
-          {/* Play/Login Button (Privy) */}
+          {/* Join Telegram Button */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -72,10 +72,10 @@ export default function LandingPage() {
             <Button
               size="lg"
               className="px-8 bg-zutchi-green text-white hover:bg-zutchi-moss"
-              onClick={login}
+              onClick={() => window.open("https://t.me/+mbnWmN610sVlNDNh", "_blank")}
             >
-              <Play className="mr-2 h-5 w-5" />
-              Play
+              <Users className="mr-2 h-5 w-5" />
+              Join Telegram
             </Button>
           </motion.div>
         </div>
