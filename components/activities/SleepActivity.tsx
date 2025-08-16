@@ -19,9 +19,10 @@ interface SleepActivityProps {
   currentActivity: string;
   userId?: string;
   onBack?: () => void;
+  onLogout?: () => void;
 }
 
-const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack }: SleepActivityProps) => {
+const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: SleepActivityProps) => {
   const [stats] = useState<PetStats>({
     happiness: 75,
     hunger: 60,
@@ -198,15 +199,28 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack }: Sl
               </div>
             </div>
 
-            {/* Coins */}
-            <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-3 py-2 shadow-xl border border-white/40">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">💰</span>
+              {/* User Actions Stack */}
+              <div className="flex flex-col gap-2 sm:items-end">
+                {/* Coins */}
+                <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-3 py-2 shadow-xl border border-white/40">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">💰</span>
+                    </div>
+                    <span className="text-lg font-bold text-gray-800">{coins.toLocaleString()}</span>
+                  </div>
                 </div>
-                <span className="text-lg font-bold text-gray-800">{coins.toLocaleString()}</span>
+
+                {/* Logout Button */}
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 rounded-xl border border-red-400 text-xs font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
-            </div>
           </motion.div>
 
           {/* Mobile Layout - Visible on screens smaller than lg */}

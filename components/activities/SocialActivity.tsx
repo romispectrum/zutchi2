@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import ActivityRightPanel from './ActivityRightPanel';
+import { useEffect, useState } from 'react';
 import ActivityMobilePanel from './ActivityMobilePanel';
+import ActivityRightPanel from './ActivityRightPanel';
 
 interface PetStats {
   happiness: number;
@@ -19,9 +19,10 @@ interface SocialActivityProps {
   currentActivity: string;
   userId?: string;
   onBack?: () => void;
+    onLogout?: () => void;
 }
 
-const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack }: SocialActivityProps) => {
+const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: SocialActivityProps) => {
   const [stats] = useState<PetStats>({
     happiness: 75,
     hunger: 60,
@@ -298,15 +299,28 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack }: S
               </div>
             </div>
 
-            {/* Coins Compact */}
-            <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-lg lg:rounded-2xl px-2 py-1 lg:px-4 lg:py-2 shadow-xl border border-white/40">
-              <div className="flex items-center gap-1 lg:gap-2">
-                <div className="h-6 w-6 lg:h-8 lg:w-8 rounded-lg lg:rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold leading-none">💰</span>
+              {/* User Actions Stack */}
+              <div className="flex flex-col gap-2 sm:items-end">
+                {/* Coins */}
+                <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-3 py-2 shadow-xl border border-white/40">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">💰</span>
+                    </div>
+                    <span className="text-lg font-bold text-gray-800">{coins.toLocaleString()}</span>
+                  </div>
                 </div>
-                <span className="text-sm lg:text-lg font-bold text-gray-800">{coins.toLocaleString()}</span>
+
+                {/* Logout Button */}
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 rounded-xl border border-red-400 text-xs font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
-            </div>
           </motion.div>
 
           {/* Mobile: Stats Row */}

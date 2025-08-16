@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from 'react';
 import PetGame from '../components/PetGame';
-import SleepActivity from '../components/activities/SleepActivity';
 import EatActivity from '../components/activities/EatActivity';
-import WorkActivity from '../components/activities/WorkActivity';
+import SleepActivity from '../components/activities/SleepActivity';
 import SocialActivity from '../components/activities/SocialActivity';
+import WorkActivity from '../components/activities/WorkActivity';
 
 const AppPage = () => {
   const { ready, authenticated, logout, user } = usePrivy();
@@ -29,6 +29,7 @@ const AppPage = () => {
             currentActivity={currentActivity}
             userId={user?.id}
             onBack={() => setCurrentActivity('home')} 
+            onLogout={handleLogout}
           />
         );
       case 'eat':
@@ -38,6 +39,7 @@ const AppPage = () => {
             currentActivity={currentActivity}
             userId={user?.id}
             onBack={() => setCurrentActivity('home')} 
+            onLogout={handleLogout}
           />
         );
       case 'work':
@@ -47,6 +49,7 @@ const AppPage = () => {
             currentActivity={currentActivity}
             userId={user?.id}
             onBack={() => setCurrentActivity('home')} 
+                        onLogout={handleLogout}
           />
         );
       case 'social':
@@ -56,6 +59,7 @@ const AppPage = () => {
             currentActivity={currentActivity}
             userId={user?.id}
             onBack={() => setCurrentActivity('home')} 
+                        onLogout={handleLogout}
           />
         );
       default:
