@@ -30,12 +30,6 @@ export default function DashboardPage() {
     linkPhone,
     unlinkPhone,
     unlinkWallet,
-    linkGoogle,
-    unlinkGoogle,
-    linkTwitter,
-    unlinkTwitter,
-    linkDiscord,
-    unlinkDiscord,
   } = usePrivy();
 
   useEffect(() => {
@@ -50,11 +44,7 @@ export default function DashboardPage() {
   const email = user?.email;
   const phone = user?.phone;
   const wallet = user?.wallet;
-
-  const googleSubject = user?.google?.subject || null;
-  const twitterSubject = user?.twitter?.subject || null;
-  const discordSubject = user?.discord?.subject || null;
-
+  
   return (
     <>
       <Head>
@@ -74,69 +64,6 @@ export default function DashboardPage() {
               </button>
             </div>
             <div className="mt-12 flex gap-4 flex-wrap">
-              {googleSubject ? (
-                <button
-                  onClick={() => {
-                    unlinkGoogle(googleSubject);
-                  }}
-                  className="text-sm border border-violet-600 hover:border-violet-700 py-2 px-4 rounded-md text-violet-600 hover:text-violet-700 disabled:border-gray-500 disabled:text-gray-500 hover:disabled:text-gray-500"
-                  disabled={!canRemoveAccount}
-                >
-                  Unlink Google
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    linkGoogle();
-                  }}
-                  className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white"
-                >
-                  Link Google
-                </button>
-              )}
-
-              {twitterSubject ? (
-                <button
-                  onClick={() => {
-                    unlinkTwitter(twitterSubject);
-                  }}
-                  className="text-sm border border-violet-600 hover:border-violet-700 py-2 px-4 rounded-md text-violet-600 hover:text-violet-700 disabled:border-gray-500 disabled:text-gray-500 hover:disabled:text-gray-500"
-                  disabled={!canRemoveAccount}
-                >
-                  Unlink Twitter
-                </button>
-              ) : (
-                <button
-                  className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white"
-                  onClick={() => {
-                    linkTwitter();
-                  }}
-                >
-                  Link Twitter
-                </button>
-              )}
-
-              {discordSubject ? (
-                <button
-                  onClick={() => {
-                    unlinkDiscord(discordSubject);
-                  }}
-                  className="text-sm border border-violet-600 hover:border-violet-700 py-2 px-4 rounded-md text-violet-600 hover:text-violet-700 disabled:border-gray-500 disabled:text-gray-500 hover:disabled:text-gray-500"
-                  disabled={!canRemoveAccount}
-                >
-                  Unlink Discord
-                </button>
-              ) : (
-                <button
-                  className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white"
-                  onClick={() => {
-                    linkDiscord();
-                  }}
-                >
-                  Link Discord
-                </button>
-              )}
-
               {email ? (
                 <button
                   onClick={() => {

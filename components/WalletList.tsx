@@ -24,17 +24,6 @@ export default function WalletList() {
     [user]
   );
 
-  const solanaEmbeddedWallets = useMemo<WalletWithMetadata[]>(
-    () =>
-      (user?.linkedAccounts.filter(
-        (account) =>
-          account.type === "wallet" &&
-          account.walletClientType === "privy" &&
-          account.chainType === "solana"
-      ) as WalletWithMetadata[]) ?? [],
-    [user]
-  );
-
   const handleCreateWallet = useCallback(
     async (type: "ethereum" | "solana") => {
       setIsCreating(true);
