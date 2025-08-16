@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from 'react';
 import PetGame from '../components/PetGame';
-import SleepActivity from '../components/activities/SleepActivity';
 import EatActivity from '../components/activities/EatActivity';
-import WorkActivity from '../components/activities/WorkActivity';
+import SleepActivity from '../components/activities/SleepActivity';
 import SocialActivity from '../components/activities/SocialActivity';
+import WorkActivity from '../components/activities/WorkActivity';
 
 const AppPage = () => {
   const { ready, authenticated, logout, user } = usePrivy();
@@ -23,13 +23,45 @@ const AppPage = () => {
   const renderActivity = () => {
     switch (currentActivity) {
       case 'sleep':
-        return <SleepActivity onBack={() => setCurrentActivity('home')} />;
+        return (
+          <SleepActivity 
+            onActivityChange={setCurrentActivity}
+            currentActivity={currentActivity}
+            userId={user?.id}
+            onBack={() => setCurrentActivity('home')} 
+            onLogout={handleLogout}
+          />
+        );
       case 'eat':
-        return <EatActivity onBack={() => setCurrentActivity('home')} />;
+        return (
+          <EatActivity 
+            onActivityChange={setCurrentActivity}
+            currentActivity={currentActivity}
+            userId={user?.id}
+            onBack={() => setCurrentActivity('home')} 
+            onLogout={handleLogout}
+          />
+        );
       case 'work':
-        return <WorkActivity onBack={() => setCurrentActivity('home')} />;
+        return (
+          <WorkActivity 
+            onActivityChange={setCurrentActivity}
+            currentActivity={currentActivity}
+            userId={user?.id}
+            onBack={() => setCurrentActivity('home')} 
+                        onLogout={handleLogout}
+          />
+        );
       case 'social':
-        return <SocialActivity onBack={() => setCurrentActivity('home')} />;
+        return (
+          <SocialActivity 
+            onActivityChange={setCurrentActivity}
+            currentActivity={currentActivity}
+            userId={user?.id}
+            onBack={() => setCurrentActivity('home')} 
+                        onLogout={handleLogout}
+          />
+        );
       default:
         return null;
     }
@@ -58,10 +90,8 @@ const AppPage = () => {
   // Activity view
   if (currentActivity !== 'home') {
     return (
-      <div className="min-h-screen">
-        <div className="max-w-md mx-auto">
-          {renderActivity()}
-        </div>
+      <div className="w-full h-screen">
+        {renderActivity()}
       </div>
     );
   }
@@ -69,25 +99,12 @@ const AppPage = () => {
   // Main pet game view
   return (
     <div className="min-h-screen bg-orange-300 relative">
-      {/* User info and logout button */}
-      <div className="absolute top-4 right-4 z-10">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-3">
-          <div className="text-xs font-bold text-gray-600 mb-1">
-            Welcome, {user?.id?.slice(0, 8)}...
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded border-2 border-black text-xs font-bold transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-
       <PetGame
         onActivityChange={setCurrentActivity}
         currentActivity={currentActivity}
         userId={user?.id}
+        user={user}
+        onLogout={handleLogout}
       />
     </div>
   );
