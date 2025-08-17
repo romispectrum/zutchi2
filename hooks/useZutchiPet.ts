@@ -1,26 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useZutchiOnboard } from './useZutchiOnboard';
 import { ZutchiData } from '../lib/zutchi.service';
-
-export interface PetStats {
-  energy: number;
-  health: number;
-  level: number;
-  xp: number;
-  nutrition: number;
-  isBusy: boolean;
-  freeAtBlock: bigint;
-  hungryAtBlock: bigint;
-  lastAteAt: bigint;
-}
+import { GameStats, PetMood, ZutchiStatsTransformer } from '../lib/zutchiStats';
 
 export interface UseZutchiPetReturn {
   // Pet state
-  petStats: PetStats | null;
-  isHungry: boolean;
-  isTired: boolean;
-  isWorking: boolean;
-  isSleeping: boolean;
+  gameStats: GameStats | null;
+  petMood: PetMood | null;
   
   // Actions
   feedPet: (foodAmount: number) => Promise<boolean>;
@@ -47,39 +33,30 @@ export function useZutchiPet(): UseZutchiPetReturn {
     error: onboardingError 
   } = useZutchiOnboard();
   
-  const [petStats, setPetStats] = useState<PetStats | null>(null);
+  const [gameStats, setGameStats] = useState<GameStats | null>(null);
+  const [petMood, setPetMood] = useState<PetMood | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Convert ZutchiData to PetStats
-  const convertToPetStats = useCallback((data: ZutchiData): PetStats => {
-    return {
-      energy: Number(data.energy),
-      health: Number(data.health),
-      level: Number(data.level),
-      xp: Number(data.xp),
-      nutrition: Number(data.nutrition),
-      isBusy: data.isBusy,
-      freeAtBlock: data.freeAtBlock,
-      hungryAtBlock: data.hungryAtBlock,
-      lastAteAt: data.lastAteAt,
-    };
-  }, []);
-
-  // Update pet stats when Zutchi data changes
+  // Transform ZutchiData to GameStats when data changes
   useEffect(() => {
     if (zutchiData) {
-      setPetStats(convertToPetStats(zutchiData));
+      try {
+        const stats = ZutchiStatsTransformer.transformToGameStats(zutchiData);
+        setGameStats(stats);
+        
+        // Calculate pet mood based on stats
+        const mood = ZutchiStatsTransformer.getPetMood(stats);
+        setPetMood(mood);
+      } catch (error) {
+        console.error('Error transforming Zutchi data to game stats:', error);
+        setError('Failed to process pet data');
+      }
     } else {
-      setPetStats(null);
+      setGameStats(null);
+      setPetMood(null);
     }
-  }, [zutchiData, convertToPetStats]);
-
-  // Calculate pet status
-  const isHungry = petStats ? Number(petStats.hungryAtBlock) < Date.now() / 1000 : false;
-  const isTired = petStats ? petStats.energy < 30 : false;
-  const isWorking = petStats ? petStats.isBusy && Number(petStats.freeAtBlock) > Date.now() / 1000 : false;
-  const isSleeping = petStats ? petStats.isBusy && !isWorking : false;
+  }, [zutchiData]);
 
   // Feed the pet
   const feedPet = useCallback(async (foodAmount: number): Promise<boolean> => {
@@ -194,35 +171,36 @@ export function useZutchiPet(): UseZutchiPetReturn {
     try {
       const data = await zutchiService.getZutchiAttributes(tokenId);
       if (data) {
-        setPetStats(convertToPetStats(data));
+        const stats = ZutchiStatsTransformer.transformToGameStats(data);
+        setGameStats(stats);
+        
+        const mood = ZutchiStatsTransformer.getPetMood(stats);
+        setPetMood(mood);
       }
     } catch (err) {
       console.error('Error refreshing pet stats:', err);
       setError('Failed to refresh pet stats');
     }
-  }, [zutchiService, tokenId, convertToPetStats]);
+  }, [zutchiService, tokenId]);
 
   // Auto-refresh stats when pet is busy
   useEffect(() => {
-    if (!isWorking && !isSleeping) return;
+    if (!gameStats || (!gameStats.isWorking && !gameStats.isSleeping)) return;
 
     const interval = setInterval(() => {
       refreshPetStats();
     }, 10000); // Check every 10 seconds when busy
 
     return () => clearInterval(interval);
-  }, [isWorking, isSleeping, refreshPetStats]);
+  }, [gameStats, refreshPetStats]);
 
   // Combine loading states
   const combinedLoading = isLoading || isOnboardingLoading;
   const combinedError = error || onboardingError;
 
   return {
-    petStats,
-    isHungry,
-    isTired,
-    isWorking,
-    isSleeping,
+    gameStats,
+    petMood,
     feedPet,
     putPetToSleep,
     putPetToWork,
