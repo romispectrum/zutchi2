@@ -8,7 +8,7 @@ import ActivityMobilePanel from './ActivityMobilePanel';
 import { useZutchiPet } from '../../hooks/useZutchiPet';
 import { ZutchiStatsTransformer } from '../../lib/zutchiStats';
 
-interface EatActivityProps {
+interface SleepActivityProps {
   onActivityChange: (activity: string) => void;
   currentActivity: string;
   userId?: string;
@@ -16,16 +16,17 @@ interface EatActivityProps {
   onLogout: () => void;
 }
 
-const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: EatActivityProps) => {
+const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: SleepActivityProps) => {
   const {
-    gameStats, petMood, feedPet, isLoading, error
+    gameStats, petMood, putPetToSleep, isLoading, error
   } = useZutchiPet();
 
   const [coins] = useState(305);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isEating, setIsEating] = useState(false);
-  const [eatTimer, setEatTimer] = useState(0);
-  const [feedAmount] = useState(10);
+  // Sleep activity states
+  const [isSleeping, setIsSleeping] = useState(false);
+  const [sleepTimer, setSleepTimer] = useState(30);
+  const [sleepDuration] = useState(300); // Default sleep duration in seconds (5 minutes)
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -54,13 +55,11 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
   };
 
   const getMoodMessage = () => {
-    if (isEating) {
-      return `Nom nom nom... 😋 (${eatTimer}s)`;
+    if (isSleeping) {
+      return `Zzz... sleeping soundly � (${sleepTimer}s)`;
     }
-    return petMood?.message || 'I\'m so hungry! Feed me please! 🥺';
-  };
-
-  const formatTime = (date: Date) => {
+    return petMood?.message || 'Zzz... I need some rest 😴';
+  };  const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
@@ -68,24 +67,24 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
     });
   };
 
-  const handleFeed = async () => {
-    if (currentActivity === 'eat' && !isEating && gameStats) {
-      setIsEating(true);
-      setEatTimer(6);
+  const handleSleep = async () => {
+    if (currentActivity === 'sleep' && !isSleeping && gameStats) {
+      setIsSleeping(true);
+      setSleepTimer(6);
 
-      // Call the feedPet function if available
-      if (feedPet) {
+      // Call the putPetToSleep function if available
+      if (putPetToSleep) {
         try {
-          await feedPet(feedAmount);
+          await putPetToSleep(sleepDuration);
         } catch (error) {
-          console.error('Failed to feed pet:', error);
+          console.error('Failed to put pet to sleep:', error);
         }
       }
 
       const interval = setInterval(() => {
-        setEatTimer(prev => {
+        setSleepTimer(prev => {
           if (prev <= 1) {
-            setIsEating(false);
+            setIsSleeping(false);
             clearInterval(interval);
             return 0;
           }
@@ -93,13 +92,13 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
         });
       }, 1000);
     } else {
-      onActivityChange('eat');
+      onActivityChange('sleep');
     }
   };
 
   const handleActivityClick = (activityId: string) => {
-    if (activityId === 'eat') {
-      handleFeed();
+    if (activityId === 'sleep') {
+      handleSleep();
     } else {
       onActivityChange(activityId);
     }
@@ -296,13 +295,13 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
             {/* Pet Character */}
             <motion.div
               className="relative mb-4"
-              animate={isEating ? {
+              animate={isSleeping ? {
                 scale: [1, 1.05, 1],
               } : {
                 y: [0, -8, 0],
               }}
               transition={{
-                duration: isEating ? 1.5 : 3,
+                duration: isSleeping ? 1.5 : 3,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
@@ -318,7 +317,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
 
               {/* Eating effects - Food particles animation */}
               <AnimatePresence>
-                {isEating && (
+                {isSleeping && (
                   <>
                     {[...Array(4)].map((_, i) => (
                       <motion.div
@@ -354,7 +353,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
             {/* Pet name tag */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
               <span className="text-sm font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                {isEating ? 'Hungry Zutchi 🍽️' : `Zutchi #${gameStats?.level || 1} ✨`}
+                {isSleeping ? 'Hungry Zutchi 🍽️' : `Zutchi #${gameStats?.level || 1} ✨`}
               </span>
             </div>
 
@@ -464,13 +463,13 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
               {/* Pet Character */}
               <motion.div
                 className="relative mb-4"
-                animate={isEating ? {
+                animate={isSleeping ? {
                   scale: [1, 1.05, 1],
                 } : {
                   y: [0, -8, 0],
                 }}
                 transition={{
-                  duration: isEating ? 1.5 : 3,
+                  duration: isSleeping ? 1.5 : 3,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -486,7 +485,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
 
                 {/* Eating effects - Food particles animation */}
                 <AnimatePresence>
-                  {isEating && (
+                  {isSleeping && (
                     <>
                       {[...Array(4)].map((_, i) => (
                         <motion.div
@@ -522,7 +521,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
               {/* Pet name tag */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
                 <span className="text-sm font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  {isEating ? 'Hungry Zutchi 🍽️' : `Zutchi #${gameStats?.level || 1} ✨`}
+                  {isSleeping ? 'Hungry Zutchi 🍽️' : `Zutchi #${gameStats?.level || 1} ✨`}
                 </span>
               </div>
 
@@ -561,19 +560,19 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleFeed}
-            disabled={isEating}
+            onClick={handleSleep}
+            disabled={isSleeping}
             className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold text-white shadow-xl transition-all duration-300 touch-manipulation ${
-              isEating
+              isSleeping
                 ? 'bg-gray-400 cursor-not-allowed opacity-70'
                 : 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 active:scale-95'
             }`}
           >
             <span className="text-xl">🍽️</span>
             <span className="text-sm sm:text-base">
-              {isEating ? `Eating... ${eatTimer}s` : 'Feed Zutchi'}
+              {isSleeping ? `Sleeping... ${sleepTimer}s` : 'Put to Sleep'}
             </span>
-            {isEating && <span className="text-xl">🍎</span>}
+            {isSleeping && <span className="text-xl">💤</span>}
           </motion.button>
         </motion.div>
 
@@ -597,4 +596,4 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
   );
 };
 
-export default EatActivity;
+export default SleepActivity;
