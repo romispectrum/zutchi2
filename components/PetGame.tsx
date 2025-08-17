@@ -93,17 +93,29 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
 
   return (
     <div className="h-screen w-full relative overflow-hidden">
-      {/* Background Image */}
-      <Image
-        src="/backgrounds/home.png"
-        alt="Home background"
-        fill
-        priority
-        className="object-cover object-center"
-      />
+      {/* Background Image with Animation */}
+      <motion.div
+        initial={{ scale: 1.1, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+        className="absolute inset-0"
+      >
+        <Image
+          src="/backgrounds/home.png"
+          alt="Home background"
+          fill
+          priority
+          className="object-cover object-center"
+        />
+      </motion.div>
 
-      {/* Magical overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 via-pink-50/15 to-blue-100/20" />
+      {/* Magical overlay with Animation */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
+        className="absolute inset-0 bg-gradient-to-br from-purple-100/20 via-pink-50/15 to-blue-100/20"
+      />
 
       {/* Floating particles animation */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -288,9 +300,9 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
 
           {/* Mobile Activities Grid (2x2) */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
+            initial={{ y: 20, scale: 0.95 }}
+            animate={{ y: 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
             className="grid grid-cols-2 gap-3"
           >
             {activities.slice(1).map((activity, index) => {
@@ -298,16 +310,16 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
               return (
                 <motion.button
                   key={activity.id}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                  initial={{ scale: 0.95, y: 10 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.7 + index * 0.1, ease: "easeOut" }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => onActivityChange(activity.id)}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-300 touch-manipulation ${
+                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-700 ease-out touch-manipulation ${
                     isActive
                       ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
-                      : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg active:scale-95'
+                      : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 hover:border-purple-200 hover:shadow-lg active:scale-95'
                   }`}
                 >
                   <div className={`h-12 w-12 rounded-xl bg-gradient-to-r ${activity.color} flex items-center justify-center shadow-md transition-all duration-300`}>
@@ -340,9 +352,9 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
           <div className="w-full flex gap-12 items-start justify-center">
             {/* Left Panel - Stats (Desktop) */}
             <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
               className="w-72 xl:w-80 space-y-3 flex-shrink-0"
             >
               {/* Stats Header */}
@@ -366,21 +378,21 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
                 return (
                   <motion.div
                     key={stat.key}
-                    initial={{ x: -30, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                    className={`bg-gradient-to-r backdrop-blur-lg rounded-2xl p-3 shadow-lg border transition-all duration-300 ${
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 + index * 0.1, ease: "easeOut" }}
+                    className={`bg-gradient-to-r backdrop-blur-lg rounded-2xl p-3 shadow-lg border transition-all duration-700 ease-out ${
                       isRelevant
                         ? 'from-white/90 to-white/80 border-white/40'
-                        : 'from-gray-300/60 to-gray-400/60 border-gray-300/40 opacity-50'
+                        : 'from-gray-400/80 to-gray-500/80 border-gray-400/60'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-xl leading-none transition-all duration-300 ${isRelevant ? '' : 'grayscale opacity-70'}`}>
+                      <span className={`text-xl leading-none transition-all duration-700 ease-out ${isRelevant ? '' : 'grayscale saturate-0 brightness-75'}`}>
                         {stat.icon}
                       </span>
-                      <span className={`text-xs font-semibold transition-all duration-300 ${
-                        isRelevant ? 'text-gray-700' : 'text-gray-500'
+                      <span className={`text-xs font-semibold transition-all duration-700 ease-out ${
+                        isRelevant ? 'text-gray-700' : 'text-gray-400'
                       }`}>
                         {stat.label}
                       </span>
@@ -388,16 +400,16 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
                     <div className="relative">
                       <div className="w-full bg-gray-200/60 rounded-full h-2">
                         <motion.div
-                          className={`h-2 rounded-full bg-gradient-to-r transition-all duration-300 ${
-                            isRelevant ? getStatColor(stat.value) : 'from-gray-400 to-gray-500'
-                          }`}
+                                                  className={`h-2 rounded-full bg-gradient-to-r transition-all duration-700 ease-out ${
+                          isRelevant ? getStatColor(stat.value) : 'from-gray-500 to-gray-600'
+                        }`}
                           initial={{ width: 0 }}
                           animate={{ width: `${stat.value}%` }}
                           transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
                         />
                       </div>
-                      <span className={`text-xs font-bold mt-1 block transition-all duration-300 ${
-                        isRelevant ? 'text-gray-800' : 'text-gray-500'
+                      <span className={`text-xs font-bold mt-1 block transition-all duration-700 ease-out ${
+                        isRelevant ? 'text-gray-800' : 'text-gray-400'
                       }`}>
                         {stat.value}%
                       </span>
@@ -409,9 +421,9 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
 
             {/* Center Panel - Pet Display (Desktop) - Fixed positioning */}
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
               className="flex flex-col items-center justify-center relative flex-1 max-w-md"
             >
               {/* Pet Character */}
@@ -419,9 +431,10 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
                 className="relative mb-4"
                 animate={{
                   y: [0, -8, 0],
+                  rotate: [0, 1, -1, 0],
                 }}
                 transition={{
-                  duration: 3,
+                  duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -445,9 +458,9 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
 
               {/* Pet Speech Bubble */}
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
+                initial={{ scale: 0, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
                 className="relative"
               >
                 <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-4 py-3 shadow-xl border border-white/40 max-w-xs">
@@ -462,7 +475,7 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
             <motion.div
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
+              transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
               className="w-72 xl:w-80 space-y-3 flex-shrink-0"
             >
               {/* Activities Header */}
@@ -483,11 +496,11 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
                     key={activity.id}
                     initial={{ x: 30, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                    transition={{ duration: 0.5, delay: 0.7 + index * 0.1, ease: "easeOut" }}
                     whileHover={{ scale: 1.05, x: 5 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => onActivityChange(activity.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all duration-700 ease-out ${
                       isActive
                         ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
                         : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg'

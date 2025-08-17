@@ -128,36 +128,50 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
 
   return (
     <div className="h-screen w-full relative overflow-hidden">
-      {/* Background Image */}
-      <Image
-        src="/backgrounds/Food.png"
-        alt="Food background"
-        fill
-        priority
-        className="object-cover object-center"
+      {/* Background Image with Animation */}
+      <motion.div
+        initial={{ scale: 1.1, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+        className="absolute inset-0"
+      >
+        <Image
+          src="/backgrounds/Food.png"
+          alt="Food background"
+          fill
+          priority
+          className="object-cover object-center"
+        />
+      </motion.div>
+
+      {/* Magical overlay with Animation */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
+        className="absolute inset-0 bg-gradient-to-br from-orange-100/20 via-yellow-50/15 to-red-100/20"
       />
 
-      {/* Magical overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-100/20 via-yellow-50/15 to-red-100/20" />
-
-      {/* Floating particles animation */}
+      {/* Enhanced floating particles animation */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(5)].map((_, i) => (
+        {[...Array(7)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1.5 h-1.5 bg-orange-400/40 rounded-full"
+            className="absolute w-2 h-2 bg-gradient-to-r from-orange-300/50 to-yellow-300/50 rounded-full"
             initial={{
               x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800),
-              y: (typeof window !== 'undefined' ? window.innerHeight : 600) + 10
+              y: (typeof window !== 'undefined' ? window.innerHeight : 600) + 20
             }}
             animate={{
-              y: -10,
-              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800)
+              y: -20,
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800),
+              scale: [1, 1.4, 1],
+              opacity: [0.3, 0.8, 0.3]
             }}
             transition={{
-              duration: Math.random() * 7 + 10,
+              duration: Math.random() * 8 + 12,
               repeat: Infinity,
-              ease: "linear"
+              ease: "easeInOut"
             }}
           />
         ))}
@@ -167,9 +181,9 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
       <div className="relative z-10 h-screen flex flex-col">
         {/* Top Header - Fixed height */}
         <motion.div
-          initial={{ y: -30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          initial={{ y: -30, scale: 0.95 }}
+          animate={{ y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className="flex-shrink-0 px-6 py-4"
         >
           <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
@@ -226,9 +240,9 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
         <div className="lg:hidden flex-1 px-6 pb-6 space-y-4 overflow-y-auto">
           {/* Mobile Stats Grid (2x2) */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={{ y: 20, scale: 0.95 }}
+            animate={{ y: 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
             className="grid grid-cols-2 gap-3"
           >
             {[
@@ -241,21 +255,21 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
               return (
                 <motion.div
                   key={stat.key}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                  className={`bg-gradient-to-r backdrop-blur-lg rounded-xl p-3 shadow-lg border transition-all duration-300 ${
+                  initial={{ scale: 0.95, y: 10 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1, ease: "easeOut" }}
+                  className={`bg-gradient-to-r backdrop-blur-lg rounded-xl p-3 shadow-lg border transition-all duration-700 ease-out ${
                     isRelevant
                       ? 'from-white/90 to-white/80 border-white/40'
-                      : 'from-gray-300/60 to-gray-400/60 border-gray-300/40 opacity-50'
+                      : 'from-gray-400/80 to-gray-500/80 border-gray-400/60'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-lg transition-all duration-300 ${isRelevant ? '' : 'grayscale opacity-70'}`}>
+                    <span className={`text-lg transition-all duration-700 ease-out ${isRelevant ? '' : 'grayscale saturate-0 brightness-75'}`}>
                       {stat.icon}
                     </span>
-                    <span className={`text-xs font-semibold transition-all duration-300 ${
-                      isRelevant ? 'text-gray-700' : 'text-gray-500'
+                    <span className={`text-xs font-semibold transition-all duration-700 ease-out ${
+                      isRelevant ? 'text-gray-700' : 'text-gray-400'
                     }`}>
                       {stat.label}
                     </span>
@@ -263,16 +277,16 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
                   <div className="relative">
                     <div className="w-full bg-gray-200/60 rounded-full h-2">
                       <motion.div
-                        className={`h-2 rounded-full bg-gradient-to-r transition-all duration-300 ${
-                          isRelevant ? getStatColor(stat.value) : 'from-gray-400 to-gray-500'
+                        className={`h-2 rounded-full bg-gradient-to-r transition-all duration-700 ease-out ${
+                          isRelevant ? getStatColor(stat.value) : 'from-gray-500 to-gray-600'
                         }`}
                         initial={{ width: 0 }}
                         animate={{ width: `${stat.value}%` }}
                         transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
                       />
                     </div>
-                    <span className={`text-xs font-bold mt-1 block transition-all duration-300 ${
-                      isRelevant ? 'text-gray-800' : 'text-gray-500'
+                    <span className={`text-xs font-bold mt-1 block transition-all duration-700 ease-out ${
+                      isRelevant ? 'text-gray-800' : 'text-gray-400'
                     }`}>
                       {stat.value}%
                     </span>
@@ -284,9 +298,9 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
 
           {/* Mobile Pet Display */}
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            initial={{ scale: 0.95, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
             className="flex flex-col items-center justify-center relative flex-1 min-h-[300px]"
           >
             {/* Pet Character */}
@@ -383,9 +397,9 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
           <div className="w-full flex gap-12 items-start justify-center">
             {/* Left Panel - Stats (Desktop) */}
             <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
               className="w-72 xl:w-80 space-y-3 flex-shrink-0"
             >
               {/* Stats Header */}
@@ -409,21 +423,21 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
                 return (
                   <motion.div
                     key={stat.key}
-                    initial={{ x: -30, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                    className={`bg-gradient-to-r backdrop-blur-lg rounded-2xl p-3 shadow-lg border transition-all duration-300 ${
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 + index * 0.1, ease: "easeOut" }}
+                    className={`bg-gradient-to-r backdrop-blur-lg rounded-2xl p-3 shadow-lg border transition-all duration-700 ease-out ${
                       isRelevant
                         ? 'from-white/90 to-white/80 border-white/40'
-                        : 'from-gray-300/60 to-gray-400/60 border-gray-300/40 opacity-50'
+                        : 'from-gray-400/80 to-gray-500/80 border-gray-400/60'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-xl leading-none transition-all duration-300 ${isRelevant ? '' : 'grayscale opacity-70'}`}>
+                      <span className={`text-xl leading-none transition-all duration-700 ease-out ${isRelevant ? '' : 'grayscale saturate-0 brightness-75'}`}>
                         {stat.icon}
                       </span>
-                      <span className={`text-xs font-semibold transition-all duration-300 ${
-                        isRelevant ? 'text-gray-700' : 'text-gray-500'
+                      <span className={`text-xs font-semibold transition-all duration-700 ease-out ${
+                        isRelevant ? 'text-gray-700' : 'text-gray-400'
                       }`}>
                         {stat.label}
                       </span>
@@ -431,16 +445,16 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
                     <div className="relative">
                       <div className="w-full bg-gray-200/60 rounded-full h-2">
                         <motion.div
-                          className={`h-2 rounded-full bg-gradient-to-r transition-all duration-300 ${
-                            isRelevant ? getStatColor(stat.value) : 'from-gray-400 to-gray-500'
-                          }`}
+                                                  className={`h-2 rounded-full bg-gradient-to-r transition-all duration-700 ease-out ${
+                          isRelevant ? getStatColor(stat.value) : 'from-gray-500 to-gray-600'
+                        }`}
                           initial={{ width: 0 }}
                           animate={{ width: `${stat.value}%` }}
                           transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
                         />
                       </div>
-                      <span className={`text-xs font-bold mt-1 block transition-all duration-300 ${
-                        isRelevant ? 'text-gray-800' : 'text-gray-500'
+                      <span className={`text-xs font-bold mt-1 block transition-all duration-700 ease-out ${
+                        isRelevant ? 'text-gray-800' : 'text-gray-400'
                       }`}>
                         {stat.value}%
                       </span>
@@ -452,9 +466,9 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
 
             {/* Center Panel - Pet Display (Desktop) - Fixed positioning */}
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
               className="flex flex-col items-center justify-center relative flex-1 max-w-md"
             >
               {/* Pet Character */}
