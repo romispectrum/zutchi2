@@ -28,9 +28,6 @@ export default function WalletLoadingScreen({ onWalletReady, onLeaveGame }: Wall
       // Check if wallet is ready (has necessary methods)
       const wallet = user.wallet;
       const isReady = wallet && (
-        wallet.request || 
-        wallet.readContract || 
-        wallet.writeContract ||
         (typeof window !== 'undefined' && (window as any).ethereum?.isConnected?.())
       );
       

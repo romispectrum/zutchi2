@@ -82,7 +82,7 @@ export function useZutchiOnboard(): UseZutchiOnboardReturn {
         setTokenId(currentId);
         
         // Get Zutchi data
-        if (currentId > 0) {
+        if (currentId >= 0) {
           const data = await zutchiService.getZutchiAttributes(currentId);
           setZutchiData(data);
         }
