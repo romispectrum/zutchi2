@@ -5,55 +5,32 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import ActivityRightPanel from './ActivityRightPanel';
 import ActivityMobilePanel from './ActivityMobilePanel';
+import { useZutchiPet } from '../../hooks/useZutchiPet';
+import { ZutchiStatsTransformer } from '../../lib/zutchiStats';
 
-interface PetStats {
-  happiness: number;
-  hunger: number;
-  energy: number;
-  work: number;
-  social: number;
-}
-
-interface SleepActivityProps {
+interface EatActivityProps {
   onActivityChange: (activity: string) => void;
   currentActivity: string;
   userId?: string;
-  onBack?: () => void;
-  onLogout?: () => void;
+  onBack: () => void;
+  onLogout: () => void;
 }
 
-const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: SleepActivityProps) => {
-  const [stats] = useState<PetStats>({
-    happiness: 75,
-    hunger: 60,
-    energy: 80,
-    work: 45,
-    social: 50
-  });
+const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: EatActivityProps) => {
+  const {
+    gameStats, petMood, feedPet, isLoading, error
+  } = useZutchiPet();
 
-  const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('tired');
   const [coins] = useState(305);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isSleeping, setIsSleeping] = useState(false);
-  const [sleepTimer, setSleepTimer] = useState(0);
+  const [isEating, setIsEating] = useState(false);
+  const [eatTimer, setEatTimer] = useState(0);
+  const [feedAmount] = useState(10);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    // Determine pet mood based on stats
-    if (stats.hunger < 30) {
-      setPetMood('hungry');
-    } else if (stats.energy < 30) {
-      setPetMood('tired');
-    } else if (stats.happiness < 40) {
-      setPetMood('sad');
-    } else {
-      setPetMood('happy');
-    }
-  }, [stats]);
 
   const activities = [
     { id: 'home', name: 'Home', emoji: '🏠', color: 'from-emerald-400 to-emerald-600' },
@@ -62,6 +39,10 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
     { id: 'work', name: 'Work', emoji: '💼', color: 'from-purple-400 to-purple-600' },
     { id: 'social', name: 'Social', emoji: '👥', color: 'from-pink-400 to-pink-600' }
   ];
+
+  const getStatColor = (value: number) => {
+    return ZutchiStatsTransformer.getStatColor(value);
+  };
 
   // Mapping of activities to their relevant stats
   const activityStatsMapping: Record<string, string[]> = {
@@ -72,22 +53,11 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
     'social': ['happiness'] // Social activities affect happiness
   };
 
-  const getStatColor = (value: number) => {
-    if (value >= 70) return 'from-green-400 to-green-500';
-    if (value >= 40) return 'from-yellow-400 to-yellow-500';
-    return 'from-red-400 to-red-500';
-  };
-
   const getMoodMessage = () => {
-    if (isSleeping) {
-      return `Sweet dreams... 😴 (${sleepTimer}s)`;
+    if (isEating) {
+      return `Nom nom nom... 😋 (${eatTimer}s)`;
     }
-    switch (petMood) {
-      case 'hungry': return 'I\'m getting hungry! 🥺';
-      case 'tired': return 'Zzz... I need some rest 😴';
-      case 'sad': return 'I need some love and care 💔';
-      default: return 'I\'m feeling great today! 😸';
-    }
+    return petMood?.message || 'I\'m so hungry! Feed me please! 🥺';
   };
 
   const formatTime = (date: Date) => {
@@ -98,15 +68,24 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
     });
   };
 
-  const handleSleep = () => {
-    if (currentActivity === 'sleep' && !isSleeping) {
-      setIsSleeping(true);
-      setSleepTimer(8);
+  const handleFeed = async () => {
+    if (currentActivity === 'eat' && !isEating && gameStats) {
+      setIsEating(true);
+      setEatTimer(6);
+
+      // Call the feedPet function if available
+      if (feedPet) {
+        try {
+          await feedPet(feedAmount);
+        } catch (error) {
+          console.error('Failed to feed pet:', error);
+        }
+      }
 
       const interval = setInterval(() => {
-        setSleepTimer(prev => {
+        setEatTimer(prev => {
           if (prev <= 1) {
-            setIsSleeping(false);
+            setIsEating(false);
             clearInterval(interval);
             return 0;
           }
@@ -114,16 +93,31 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
         });
       }, 1000);
     } else {
-      onActivityChange('sleep');
+      onActivityChange('eat');
     }
   };
 
   const handleActivityClick = (activityId: string) => {
-    if (activityId === 'sleep') {
-      handleSleep();
+    if (activityId === 'eat') {
+      handleFeed();
     } else {
       onActivityChange(activityId);
     }
+  };
+
+  // Convert gameStats to PetStats format for compatibility
+  const petStats = gameStats ? {
+    happiness: gameStats.happiness || 75,
+    hunger: gameStats.hunger || 60,
+    energy: gameStats.energy || 80,
+    work: gameStats.work || 45,
+    social: gameStats.social || 50
+  } : {
+    happiness: 75,
+    hunger: 60,
+    energy: 80,
+    work: 45,
+    social: 50
   };
 
   return (
@@ -136,8 +130,8 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
         className="absolute inset-0"
       >
         <Image
-          src="/backgrounds/Sleep.png"
-          alt="Sleep background"
+          src="/backgrounds/Food.png"
+          alt="Food background"
           fill
           priority
           className="object-cover object-center"
@@ -149,7 +143,7 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
-        className="absolute inset-0 bg-gradient-to-br from-purple-100/20 via-pink-50/15 to-blue-100/20"
+        className="absolute inset-0 bg-gradient-to-br from-orange-100/20 via-yellow-50/15 to-red-100/20"
       />
 
       {/* Enhanced floating particles animation */}
@@ -157,7 +151,7 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 bg-gradient-to-r from-indigo-200/40 to-blue-200/40 rounded-full"
+            className="absolute w-2 h-2 bg-gradient-to-r from-orange-200/40 to-yellow-200/40 rounded-full"
             initial={{
               x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800),
               y: (typeof window !== 'undefined' ? window.innerHeight : 600) + 20
@@ -190,19 +184,17 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
             {/* Welcome & Time Combined with Back Button */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-3 py-2 shadow-xl border border-white/40">
               <div className="flex items-center gap-2 sm:gap-3">
-                {onBack && (
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={onBack}
-                    className="h-8 w-8 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </motion.button>
-                )}
-                <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={onBack}
+                  className="h-8 w-8 rounded-xl bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center"
+                >
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </motion.button>
+                <div className="h-8 w-8 rounded-xl bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center">
                   <span className="text-white text-sm">👋</span>
                 </div>
                 <div>
@@ -224,14 +216,12 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
               </div>
 
               {/* Logout Button */}
-              {onLogout && (
-                <button
-                  onClick={onLogout}
-                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 rounded-xl border border-red-400 text-xs font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                  Logout
-                </button>
-              )}
+              <button
+                onClick={onLogout}
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 rounded-xl border border-red-400 text-xs font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </motion.div>
@@ -246,10 +236,10 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
             className="grid grid-cols-2 gap-3"
           >
             {[
-              { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
-              { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
-              { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
-              { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
+              { key: 'happiness', icon: '💖', label: 'Happy', value: petStats.happiness },
+              { key: 'hunger', icon: '🍼', label: 'Full', value: petStats.hunger },
+              { key: 'energy', icon: '⚡', label: 'Energy', value: petStats.energy },
+              { key: 'work', icon: '🎯', label: 'Focus', value: petStats.work }
             ].map((stat, index) => {
               const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
               return (
@@ -306,54 +296,54 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
             {/* Pet Character */}
             <motion.div
               className="relative mb-4"
-              animate={isSleeping ? {
-                y: [0, -5, 0],
+              animate={isEating ? {
+                scale: [1, 1.05, 1],
               } : {
                 y: [0, -8, 0],
               }}
               transition={{
-                duration: isSleeping ? 2.5 : 3,
+                duration: isEating ? 1.5 : 3,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
             >
               <Image
-                src="/cats-for-use/sleep/V44.png"
-                alt="Sleeping Zutchi Cat"
+                src="/cats-for-use/home/V54.png"
+                alt="Eating Zutchi Cat"
                 width={200}
                 height={200}
                 className="drop-shadow-2xl sm:w-[240px] sm:h-[240px]"
                 priority
               />
 
-              {/* Sleep effects - Z's animation */}
+              {/* Eating effects - Food particles animation */}
               <AnimatePresence>
-                {isSleeping && (
+                {isEating && (
                   <>
-                    {[...Array(3)].map((_, i) => (
+                    {[...Array(4)].map((_, i) => (
                       <motion.div
-                        key={`z-${i}`}
-                        className="absolute text-xl sm:text-2xl text-indigo-600"
+                        key={`food-${i}`}
+                        className="absolute text-xl text-orange-600"
                         initial={{
-                          x: -15 + i * 10,
-                          y: -25 - i * 15,
+                          x: -20 + i * 15,
+                          y: -30 - i * 10,
                           opacity: 0,
                           scale: 0.5
                         }}
                         animate={{
-                          x: -5 + i * 10,
-                          y: -45 - i * 15,
+                          x: -10 + i * 15,
+                          y: -50 - i * 10,
                           opacity: [0, 1, 0],
                           scale: [0.5, 1, 0.5]
                         }}
                         transition={{
-                          duration: 2,
+                          duration: 1.5,
                           repeat: Infinity,
-                          delay: i * 0.3,
+                          delay: i * 0.2,
                           ease: "easeInOut"
                         }}
                       >
-                        💤
+                        {['🍎', '🥕', '🍯', '🐟'][i]}
                       </motion.div>
                     ))}
                   </>
@@ -363,8 +353,8 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
 
             {/* Pet name tag */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
-              <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {isSleeping ? 'Sleepy Zutchi 💤' : 'Zutchi 2.0 ✨'}
+              <span className="text-sm font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                {isEating ? 'Hungry Zutchi 🍽️' : `Zutchi #${gameStats?.level || 1} ✨`}
               </span>
             </div>
 
@@ -405,7 +395,7 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
               {/* Stats Header */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl p-3 shadow-xl border border-white/40">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="h-6 w-6 rounded-lg bg-gradient-to-r from-emerald-400 to-teal-400 flex items-center justify-center">
+                  <div className="h-6 w-6 rounded-lg bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center">
                     <span className="text-white text-sm leading-none">📊</span>
                   </div>
                   <h3 className="text-sm font-bold text-gray-800">Pet Stats</h3>
@@ -414,10 +404,10 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
 
               {/* Individual Stats */}
               {[
-                { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
-                { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
-                { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
-                { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
+                { key: 'happiness', icon: '💖', label: 'Happy', value: petStats.happiness },
+                { key: 'hunger', icon: '🍼', label: 'Full', value: petStats.hunger },
+                { key: 'energy', icon: '⚡', label: 'Energy', value: petStats.energy },
+                { key: 'work', icon: '🎯', label: 'Focus', value: petStats.work }
               ].map((stat, index) => {
                 const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
                 return (
@@ -445,9 +435,9 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
                     <div className="relative">
                       <div className="w-full bg-gray-200/60 rounded-full h-2">
                         <motion.div
-                                                  className={`h-2 rounded-full bg-gradient-to-r transition-all duration-700 ease-out ${
-                          isRelevant ? getStatColor(stat.value) : 'from-gray-500 to-gray-600'
-                        }`}
+                          className={`h-2 rounded-full bg-gradient-to-r transition-all duration-700 ease-out ${
+                            isRelevant ? getStatColor(stat.value) : 'from-gray-500 to-gray-600'
+                          }`}
                           initial={{ width: 0 }}
                           animate={{ width: `${stat.value}%` }}
                           transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
@@ -474,54 +464,54 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
               {/* Pet Character */}
               <motion.div
                 className="relative mb-4"
-                animate={isSleeping ? {
-                  y: [0, -5, 0],
+                animate={isEating ? {
+                  scale: [1, 1.05, 1],
                 } : {
                   y: [0, -8, 0],
                 }}
                 transition={{
-                  duration: isSleeping ? 2.5 : 3,
+                  duration: isEating ? 1.5 : 3,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               >
                 <Image
-                  src="/cats-for-use/sleep/V44.png"
-                  alt="Sleeping Zutchi Cat"
+                  src="/cats-for-use/home/V54.png"
+                  alt="Eating Zutchi Cat"
                   width={280}
                   height={280}
                   className="drop-shadow-2xl"
                   priority
                 />
 
-                {/* Sleep effects - Z's animation */}
+                {/* Eating effects - Food particles animation */}
                 <AnimatePresence>
-                  {isSleeping && (
+                  {isEating && (
                     <>
-                      {[...Array(3)].map((_, i) => (
+                      {[...Array(4)].map((_, i) => (
                         <motion.div
-                          key={`z-${i}`}
-                          className="absolute text-2xl text-indigo-600"
+                          key={`food-${i}`}
+                          className="absolute text-2xl text-orange-600"
                           initial={{
-                            x: -15 + i * 10,
-                            y: -25 - i * 15,
+                            x: -20 + i * 15,
+                            y: -30 - i * 10,
                             opacity: 0,
                             scale: 0.5
                           }}
                           animate={{
-                            x: -5 + i * 10,
-                            y: -45 - i * 15,
+                            x: -10 + i * 15,
+                            y: -50 - i * 10,
                             opacity: [0, 1, 0],
                             scale: [0.5, 1, 0.5]
                           }}
                           transition={{
-                            duration: 2,
+                            duration: 1.5,
                             repeat: Infinity,
-                            delay: i * 0.3,
+                            delay: i * 0.2,
                             ease: "easeInOut"
                           }}
                         >
-                          💤
+                          {['🍎', '🥕', '🍯', '🐟'][i]}
                         </motion.div>
                       ))}
                     </>
@@ -531,8 +521,8 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
 
               {/* Pet name tag */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
-                <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {isSleeping ? 'Sleepy Zutchi 💤' : 'Zutchi 2.0 ✨'}
+                <span className="text-sm font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                  {isEating ? 'Hungry Zutchi 🍽️' : `Zutchi #${gameStats?.level || 1} ✨`}
                 </span>
               </div>
 
@@ -561,7 +551,7 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
           </div>
         </div>
 
-        {/* Sleep Action Button - Fixed position */}
+        {/* Feed Action Button - Fixed position */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -571,19 +561,19 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleSleep}
-            disabled={isSleeping}
+            onClick={handleFeed}
+            disabled={isEating}
             className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold text-white shadow-xl transition-all duration-300 touch-manipulation ${
-              isSleeping
+              isEating
                 ? 'bg-gray-400 cursor-not-allowed opacity-70'
-                : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95'
+                : 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 active:scale-95'
             }`}
           >
-            <span className="text-xl">🌙</span>
+            <span className="text-xl">🍽️</span>
             <span className="text-sm sm:text-base">
-              {isSleeping ? `Sleeping... ${sleepTimer}s` : 'Start Sleeping'}
+              {isEating ? `Eating... ${eatTimer}s` : 'Feed Zutchi'}
             </span>
-            {isSleeping && <span className="text-xl">💤</span>}
+            {isEating && <span className="text-xl">🍎</span>}
           </motion.button>
         </motion.div>
 
@@ -596,8 +586,8 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
         >
           <div className="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-lg border border-white/40 inline-block">
             <p className="text-xs text-gray-600 flex items-center gap-2">
-              <span>💤</span>
-              Sleep restores energy and happiness!
+              <span>🍎</span>
+              Feeding increases hunger and happiness!
               <span>🌟</span>
             </p>
           </div>
@@ -607,4 +597,4 @@ const SleepActivity = ({ onActivityChange, currentActivity, userId, onBack, onLo
   );
 };
 
-export default SleepActivity;
+export default EatActivity;
