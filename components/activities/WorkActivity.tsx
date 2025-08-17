@@ -5,14 +5,8 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import ActivityMobilePanel from './ActivityMobilePanel';
 import ActivityRightPanel from './ActivityRightPanel';
-
-interface PetStats {
-  happiness: number;
-  hunger: number;
-  energy: number;
-  work: number;
-  social: number;
-}
+import { useZutchiPet } from '../../hooks/useZutchiPet';
+import { ZutchiStatsTransformer } from '../../lib/zutchiStats';
 
 interface WorkActivityProps {
   onActivityChange: (activity: string) => void;
@@ -23,37 +17,20 @@ interface WorkActivityProps {
 }
 
 const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: WorkActivityProps) => {
-  const [stats] = useState<PetStats>({
-    happiness: 75,
-    hunger: 60,
-    energy: 80,
-    work: 45,
-    social: 50
-  });
+  const {
+    gameStats, petMood, putPetToWork, isLoading, error
+  } = useZutchiPet();
 
-  const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('tired');
   const [coins] = useState(305);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isWorking, setIsWorking] = useState(false);
   const [workTimer, setWorkTimer] = useState(0);
+  const [workDuration] = useState(10); // Default work duration in blocks
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    // Determine pet mood based on stats
-    if (stats.hunger < 30) {
-      setPetMood('hungry');
-    } else if (stats.energy < 30) {
-      setPetMood('tired');
-    } else if (stats.happiness < 40) {
-      setPetMood('sad');
-    } else {
-      setPetMood('happy');
-    }
-  }, [stats]);
 
   const activities = [
     { id: 'home', name: 'Home', emoji: '🏠', color: 'from-emerald-400 to-emerald-600' },
@@ -62,6 +39,10 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
     { id: 'work', name: 'Work', emoji: '💼', color: 'from-purple-400 to-purple-600' },
     { id: 'social', name: 'Social', emoji: '👥', color: 'from-pink-400 to-pink-600' }
   ];
+
+  const getStatColor = (value: number) => {
+    return ZutchiStatsTransformer.getStatColor(value);
+  };
 
   // Mapping of activities to their relevant stats
   const activityStatsMapping: Record<string, string[]> = {
@@ -72,22 +53,11 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
     'social': ['happiness'] // Social activities affect happiness
   };
 
-  const getStatColor = (value: number) => {
-    if (value >= 70) return 'from-green-400 to-green-500';
-    if (value >= 40) return 'from-yellow-400 to-yellow-500';
-    return 'from-red-400 to-red-500';
-  };
-
   const getMoodMessage = () => {
     if (isWorking) {
       return `Hard at work! 💪 (${workTimer}s)`;
     }
-    switch (petMood) {
-      case 'hungry': return 'I\'m getting hungry! 🥺';
-      case 'tired': return 'Zzz... I need some rest 😴';
-      case 'sad': return 'I need some love and care 💔';
-      default: return 'Ready to be productive! 😸';
-    }
+    return petMood?.message || 'Ready to be productive! 😸';
   };
 
   const formatTime = (date: Date) => {
@@ -98,10 +68,19 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
     });
   };
 
-  const handleWork = () => {
-    if (currentActivity === 'work' && !isWorking) {
+  const handleWork = async () => {
+    if (currentActivity === 'work' && !isWorking && gameStats) {
       setIsWorking(true);
       setWorkTimer(10);
+
+      // Call the putPetToWork function if available
+      if (putPetToWork) {
+        try {
+          await putPetToWork(workDuration);
+        } catch (error) {
+          console.error('Failed to put pet to work:', error);
+        }
+      }
 
       const interval = setInterval(() => {
         setWorkTimer(prev => {
@@ -124,6 +103,21 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
     } else {
       onActivityChange(activityId);
     }
+  };
+
+  // Convert gameStats to PetStats format for compatibility
+  const petStats = gameStats ? {
+    happiness: gameStats.happiness || 75,
+    hunger: gameStats.hunger || 60,
+    energy: gameStats.energy || 80,
+    work: gameStats.work || 45,
+    social: gameStats.social || 50
+  } : {
+    happiness: 75,
+    hunger: 60,
+    energy: 80,
+    work: 45,
+    social: 50
   };
 
   return (
@@ -246,10 +240,10 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
             className="grid grid-cols-2 gap-3"
           >
             {[
-              { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
-              { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
-              { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
-              { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
+              { key: 'happiness', icon: '💖', label: 'Happy', value: petStats.happiness },
+              { key: 'hunger', icon: '🍼', label: 'Full', value: petStats.hunger },
+              { key: 'energy', icon: '⚡', label: 'Energy', value: petStats.energy },
+              { key: 'work', icon: '🎯', label: 'Focus', value: petStats.work }
             ].map((stat, index) => {
               const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
               return (
@@ -364,7 +358,7 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
             {/* Pet name tag */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
               <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {isWorking ? 'Focused Zutchi 💼' : 'Zutchi 2.0 ✨'}
+                {isWorking ? 'Focused Zutchi 💼' : `Zutchi #${gameStats?.level || 1} ✨`}
               </span>
             </div>
 
@@ -414,10 +408,10 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
 
               {/* Individual Stats */}
               {[
-                { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
-                { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
-                { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
-                { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
+                { key: 'happiness', icon: '💖', label: 'Happy', value: petStats.happiness },
+                { key: 'hunger', icon: '🍼', label: 'Full', value: petStats.hunger },
+                { key: 'energy', icon: '⚡', label: 'Energy', value: petStats.energy },
+                { key: 'work', icon: '🎯', label: 'Focus', value: petStats.work }
               ].map((stat, index) => {
                 const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
                 return (
@@ -532,7 +526,7 @@ const WorkActivity = ({ onActivityChange, currentActivity, userId, onBack, onLog
               {/* Pet name tag */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
                 <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {isWorking ? 'Focused Zutchi 💼' : 'Zutchi 2.0 ✨'}
+                  {isWorking ? 'Focused Zutchi 💼' : `Zutchi #${gameStats?.level || 1} ✨`}
                 </span>
               </div>
 

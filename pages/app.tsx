@@ -10,6 +10,7 @@ import SocialActivity from '../components/activities/SocialActivity';
 import WorkActivity from '../components/activities/WorkActivity';
 import ZutchiOnboarding from '../components/ZutchiOnboarding';
 import WalletLoadingScreen from '../components/WalletLoadingScreen';
+import { ZutchiCacheDebugger } from '../components/ZutchiCacheDebugger';
 import { useZutchiOnboard } from '../hooks/useZutchiOnboard';
 
 const AppPage = () => {
@@ -130,7 +131,11 @@ const AppPage = () => {
   // Show onboarding if user doesn't have a Zutchi yet
   if (!isZutchiLoading && !hasZutchi && !onboardingComplete) {
     return (
-      <ZutchiOnboarding onComplete={handleOnboardingComplete} />
+      <>
+        <ZutchiOnboarding onComplete={handleOnboardingComplete} />
+        {/* Debug component - remove in production */}
+        {process.env.NODE_ENV === 'development' && <ZutchiCacheDebugger />}
+      </>
     );
   }
 
@@ -165,6 +170,8 @@ const AppPage = () => {
         user={user}
         onLogout={handleLogout}
       />
+      {/* Debug component - remove in production */}
+      {process.env.NODE_ENV === 'development' && <ZutchiCacheDebugger />}
     </div>
   );
 };

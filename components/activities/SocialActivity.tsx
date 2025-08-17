@@ -5,14 +5,8 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import ActivityMobilePanel from './ActivityMobilePanel';
 import ActivityRightPanel from './ActivityRightPanel';
-
-interface PetStats {
-  happiness: number;
-  hunger: number;
-  energy: number;
-  work: number;
-  social: number;
-}
+import { useZutchiPet } from '../../hooks/useZutchiPet';
+import { ZutchiStatsTransformer } from '../../lib/zutchiStats';
 
 interface SocialActivityProps {
   onActivityChange: (activity: string) => void;
@@ -23,15 +17,10 @@ interface SocialActivityProps {
 }
 
 const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: SocialActivityProps) => {
-  const [stats] = useState<PetStats>({
-    happiness: 75,
-    hunger: 60,
-    energy: 80,
-    work: 45,
-    social: 50
-  });
+  const {
+    gameStats, petMood, addFren, isLoading, error
+  } = useZutchiPet();
 
-  const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('happy');
   const [coins] = useState(305);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isSocializing, setIsSocializing] = useState(false);
@@ -42,19 +31,6 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    // Determine pet mood based on stats
-    if (stats.hunger < 30) {
-      setPetMood('hungry');
-    } else if (stats.energy < 30) {
-      setPetMood('tired');
-    } else if (stats.happiness < 40) {
-      setPetMood('sad');
-    } else {
-      setPetMood('happy');
-    }
-  }, [stats]);
-
   const activities = [
     { id: 'home', name: 'Home', emoji: '🏠', color: 'from-emerald-400 to-emerald-600' },
     { id: 'sleep', name: 'Sleep', emoji: '🌙', color: 'from-indigo-400 to-indigo-600' },
@@ -62,6 +38,10 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
     { id: 'work', name: 'Work', emoji: '💼', color: 'from-purple-400 to-purple-600' },
     { id: 'social', name: 'Social', emoji: '👥', color: 'from-pink-400 to-pink-600' }
   ];
+
+  const getStatColor = (value: number) => {
+    return ZutchiStatsTransformer.getStatColor(value);
+  };
 
   // Mapping of activities to their relevant stats
   const activityStatsMapping: Record<string, string[]> = {
@@ -72,22 +52,11 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
     'social': ['happiness'] // Social activities affect happiness
   };
 
-  const getStatColor = (value: number) => {
-    if (value >= 70) return 'from-green-400 to-green-500';
-    if (value >= 40) return 'from-yellow-400 to-yellow-500';
-    return 'from-red-400 to-red-500';
-  };
-
   const getMoodMessage = () => {
     if (isSocializing) {
       return `Having fun with friends! 🎉 (${socialTimer}s)`;
     }
-    switch (petMood) {
-      case 'hungry': return 'I\'m getting hungry! 🥺';
-      case 'tired': return 'Zzz... I need some rest 😴';
-      case 'sad': return 'I need some love and care 💔';
-      default: return 'Ready to make new friends! 😸';
-    }
+    return petMood?.message || 'Ready to make new friends! 😸';
   };
 
   const formatTime = (date: Date) => {
@@ -98,10 +67,20 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
     });
   };
 
-  const handleSocialize = () => {
-    if (currentActivity === 'social' && !isSocializing) {
+  const handleSocialize = async () => {
+    if (currentActivity === 'social' && !isSocializing && gameStats) {
       setIsSocializing(true);
       setSocialTimer(6);
+
+      // For demo purposes, try to add a random friend (token ID between 1-10)
+      if (addFren) {
+        try {
+          const randomFrenId = Math.floor(Math.random() * 10) + 1;
+          await addFren(randomFrenId);
+        } catch (error) {
+          console.error('Failed to add friend:', error);
+        }
+      }
 
       const interval = setInterval(() => {
         setSocialTimer(prev => {
@@ -124,6 +103,21 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
     } else {
       onActivityChange(activityId);
     }
+  };
+
+  // Convert gameStats to PetStats format for compatibility
+  const petStats = gameStats ? {
+    happiness: gameStats.happiness || 75,
+    hunger: gameStats.hunger || 60,
+    energy: gameStats.energy || 80,
+    work: gameStats.work || 45,
+    social: gameStats.social || 50
+  } : {
+    happiness: 75,
+    hunger: 60,
+    energy: 80,
+    work: 45,
+    social: 50
   };
 
   return (
@@ -246,10 +240,10 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
             className="grid grid-cols-2 gap-3"
           >
             {[
-              { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
-              { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
-              { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
-              { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
+              { key: 'happiness', icon: '💖', label: 'Happy', value: petStats.happiness },
+              { key: 'hunger', icon: '🍼', label: 'Full', value: petStats.hunger },
+              { key: 'energy', icon: '⚡', label: 'Energy', value: petStats.energy },
+              { key: 'work', icon: '🎯', label: 'Focus', value: petStats.work }
             ].map((stat, index) => {
               const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
               return (
@@ -364,7 +358,7 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
             {/* Pet name tag */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
               <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {isSocializing ? 'Social Zutchi 👥' : 'Zutchi 2.0 ✨'}
+                {isSocializing ? 'Social Zutchi 👥' : `Zutchi #${gameStats?.level || 1} ✨`}
               </span>
             </div>
 
@@ -414,10 +408,10 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
 
               {/* Individual Stats */}
               {[
-                { key: 'happiness', icon: '💖', label: 'Happy', value: stats.happiness },
-                { key: 'hunger', icon: '🍼', label: 'Full', value: stats.hunger },
-                { key: 'energy', icon: '⚡', label: 'Energy', value: stats.energy },
-                { key: 'work', icon: '🎯', label: 'Focus', value: stats.work }
+                { key: 'happiness', icon: '💖', label: 'Happy', value: petStats.happiness },
+                { key: 'hunger', icon: '🍼', label: 'Full', value: petStats.hunger },
+                { key: 'energy', icon: '⚡', label: 'Energy', value: petStats.energy },
+                { key: 'work', icon: '🎯', label: 'Focus', value: petStats.work }
               ].map((stat, index) => {
                 const isRelevant = activityStatsMapping[currentActivity]?.includes(stat.key) || currentActivity === 'home';
                 return (
@@ -532,7 +526,7 @@ const SocialActivity = ({ onActivityChange, currentActivity, userId, onBack, onL
               {/* Pet name tag */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
                 <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {isSocializing ? 'Social Zutchi 👥' : 'Zutchi 2.0 ✨'}
+                  {isSocializing ? 'Social Zutchi 👥' : `Zutchi #${gameStats?.level || 1} ✨`}
                 </span>
               </div>
 
