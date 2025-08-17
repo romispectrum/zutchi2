@@ -3,14 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-
-interface PetStats {
-  happiness: number;
-  hunger: number;
-  energy: number;
-  work: number;
-  social: number;
-}
+import { useZutchiPet } from '@/hooks/useZutchiPet';
 
 interface PetGameProps {
   onActivityChange: (activity: string) => void;
@@ -20,16 +13,36 @@ interface PetGameProps {
   onLogout?: () => void;
 }
 
-const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: PetGameProps) => {
-  const [stats] = useState<PetStats>({
+const PetGame = ({ onActivityChange, currentActivity, user, onLogout }: PetGameProps) => {
+  const { 
+    petStats, 
+    isHungry, 
+    isTired, 
+    isWorking, 
+    isSleeping,
+    isLoading,
+    error 
+  } = useZutchiPet();
+
+  // Fallback stats if no contract data
+  const fallbackStats = {
     happiness: 75,
     hunger: 60,
     energy: 80,
     work: 45,
     social: 50
-  });
+  };
 
-  const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('happy');
+  // Use real contract data or fallback
+  const stats = petStats ? {
+    happiness: Math.max(0, Math.min(100, 100 - (isHungry ? 40 : 0) - (isTired ? 30 : 0))),
+    hunger: Math.max(0, Math.min(100, 100 - (isHungry ? 60 : 0))),
+    energy: Math.max(0, Math.min(100, petStats.energy)),
+    work: Math.max(0, Math.min(100, 100 - (isWorking ? 50 : 0))),
+    social: 50 // Default social stat
+  } : fallbackStats;
+
+  const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry' | 'working' | 'sleeping'>('happy');
   const [coins] = useState(305);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -39,17 +52,21 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
   }, []);
 
   useEffect(() => {
-    // Determine pet mood based on stats
-    if (stats.hunger < 30) {
+    // Determine pet mood based on real contract data
+    if (isWorking) {
+      setPetMood('working');
+    } else if (isSleeping) {
+      setPetMood('sleeping');
+    } else if (isHungry) {
       setPetMood('hungry');
-    } else if (stats.energy < 30) {
+    } else if (isTired) {
       setPetMood('tired');
     } else if (stats.happiness < 40) {
       setPetMood('sad');
     } else {
       setPetMood('happy');
     }
-  }, [stats]);
+  }, [stats, isHungry, isTired, isWorking, isSleeping]);
 
   const activities = [
     { id: 'home', name: 'Home', emoji: '🏠', color: 'from-emerald-400 to-emerald-600' },
@@ -76,6 +93,8 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
 
   const getMoodMessage = () => {
     switch (petMood) {
+      case 'working': return 'I\'m working hard! 💪';
+      case 'sleeping': return 'Zzz... Sweet dreams 😴';
       case 'hungry': return 'I\'m getting hungry! 🥺';
       case 'tired': return 'Zzz... I need some rest 😴';
       case 'sad': return 'I need some love and care 💔';
@@ -90,6 +109,31 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
       hour12: true
     });
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-orange-300 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-bounce">🐱</div>
+          <p className="text-xl font-bold text-black">Loading your Zutchi...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-orange-300 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😿</div>
+          <p className="text-xl font-bold text-red-600 mb-2">Oops! Something went wrong</p>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full relative overflow-hidden">
@@ -267,7 +311,7 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
             {/* Pet name tag */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
               <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Zutchi 2.0 ✨
+                {petStats ? `Zutchi #${petStats.level}` : 'Zutchi 2.0'} ✨
               </span>
             </div>
 
@@ -295,17 +339,24 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
           >
             {activities.slice(1).map((activity, index) => {
               const isActive = currentActivity === activity.id;
+              const isDisabled = (activity.id === 'sleep' && isWorking) || 
+                                (activity.id === 'work' && isSleeping) ||
+                                (activity.id === 'eat' && isWorking);
+              
               return (
                 <motion.button
                   key={activity.id}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => onActivityChange(activity.id)}
+                  whileHover={{ scale: isDisabled ? 1 : 1.05 }}
+                  whileTap={{ scale: isDisabled ? 1 : 0.95 }}
+                  onClick={() => !isDisabled && onActivityChange(activity.id)}
+                  disabled={isDisabled}
                   className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-300 touch-manipulation ${
-                    isActive
+                    isDisabled
+                      ? 'border-gray-300 bg-gradient-to-r from-gray-200/60 to-gray-300/60 opacity-50 cursor-not-allowed'
+                      : isActive
                       ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
                       : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg active:scale-95'
                   }`}
@@ -314,7 +365,7 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
                     <span className="text-2xl leading-none">{activity.emoji}</span>
                   </div>
                   <span className={`text-sm font-bold ${
-                    isActive ? 'text-purple-700' : 'text-gray-700'
+                    isActive ? 'text-purple-700' : isDisabled ? 'text-gray-500' : 'text-gray-700'
                   }`}>
                     {activity.name}
                   </span>
@@ -439,7 +490,7 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
               {/* Pet name tag */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
                 <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Zutchi 2.0 ✨
+                  {petStats ? `Zutchi #${petStats.level}` : 'Zutchi 2.0'} ✨
                 </span>
               </div>
 
@@ -478,17 +529,24 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
               {/* Activity Buttons - Vertical */}
               {activities.map((activity, index) => {
                 const isActive = currentActivity === activity.id;
+                const isDisabled = (activity.id === 'sleep' && isWorking) || 
+                                  (activity.id === 'work' && isSleeping) ||
+                                  (activity.id === 'eat' && isWorking);
+                
                 return (
                   <motion.button
                     key={activity.id}
                     initial={{ x: 30, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
-                    whileHover={{ scale: 1.05, x: 5 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => onActivityChange(activity.id)}
+                    whileHover={{ scale: isDisabled ? 1 : 1.05, x: isDisabled ? 0 : 5 }}
+                    whileTap={{ scale: isDisabled ? 1 : 0.95 }}
+                    onClick={() => !isDisabled && onActivityChange(activity.id)}
+                    disabled={isDisabled}
                     className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 ${
-                      isActive
+                      isDisabled
+                        ? 'border-gray-300 bg-gradient-to-r from-gray-200/60 to-gray-300/60 opacity-50 cursor-not-allowed'
+                        : isActive
                         ? 'border-purple-300 bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-xl scale-105'
                         : 'border-white/40 bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg hover:border-purple-200 hover:shadow-lg'
                     }`}
@@ -497,7 +555,7 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
                       <span className="text-xl leading-none">{activity.emoji}</span>
                     </div>
                     <span className={`text-sm font-bold ${
-                      isActive ? 'text-purple-700' : 'text-gray-700'
+                      isActive ? 'text-purple-700' : isDisabled ? 'text-gray-500' : 'text-gray-700'
                     }`}>
                       {activity.name}
                     </span>

@@ -5,14 +5,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import ActivityMobilePanel from './ActivityMobilePanel';
 import ActivityRightPanel from './ActivityRightPanel';
-
-interface PetStats {
-  happiness: number;
-  hunger: number;
-  energy: number;
-  work: number;
-  social: number;
-}
+import { useZutchiPet } from '@/hooks/useZutchiPet';
 
 interface EatActivityProps {
   onActivityChange: (activity: string) => void;
@@ -23,19 +16,40 @@ interface EatActivityProps {
 }
 
 const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: EatActivityProps) => {
-  const [stats] = useState<PetStats>({
+  const { 
+    petStats, 
+    isHungry, 
+    isTired, 
+    isWorking,
+    feedPet,
+    isLoading,
+    error 
+  } = useZutchiPet();
+
+  // Fallback stats if no contract data
+  const fallbackStats = {
     happiness: 75,
     hunger: 60,
     energy: 80,
     work: 45,
     social: 50
-  });
+  };
+
+  // Use real contract data or fallback
+  const stats = petStats ? {
+    happiness: Math.max(0, Math.min(100, 100 - (isHungry ? 40 : 0) - (isTired ? 30 : 0))),
+    hunger: Math.max(0, Math.min(100, 100 - (isHungry ? 60 : 0))),
+    energy: Math.max(0, Math.min(100, petStats.energy)),
+    work: Math.max(0, Math.min(100, 100 - (isWorking ? 50 : 0))),
+    social: 50 // Default social stat
+  } : fallbackStats;
 
   const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('hungry');
   const [coins] = useState(305);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isEating, setIsEating] = useState(false);
   const [eatTimer, setEatTimer] = useState(0);
+  const [feedAmount, setFeedAmount] = useState(10);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -43,17 +57,17 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
   }, []);
 
   useEffect(() => {
-    // Determine pet mood based on stats
-    if (stats.hunger < 30) {
+    // Determine pet mood based on real contract data
+    if (isHungry) {
       setPetMood('hungry');
-    } else if (stats.energy < 30) {
+    } else if (isTired) {
       setPetMood('tired');
     } else if (stats.happiness < 40) {
       setPetMood('sad');
     } else {
       setPetMood('happy');
     }
-  }, [stats]);
+  }, [stats, isHungry, isTired]);
 
   const activities = [
     { id: 'home', name: 'Home', emoji: '🏠', color: 'from-emerald-400 to-emerald-600' },
@@ -98,21 +112,37 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
     });
   };
 
-  const handleEat = () => {
+  const handleEat = async () => {
     if (currentActivity === 'eat' && !isEating) {
       setIsEating(true);
       setEatTimer(5);
 
-      const interval = setInterval(() => {
-        setEatTimer(prev => {
-          if (prev <= 1) {
-            setIsEating(false);
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      try {
+        // Call the contract to feed the pet
+        const success = await feedPet(feedAmount);
+        
+        if (success) {
+          // Start eating animation
+          const interval = setInterval(() => {
+            setEatTimer(prev => {
+              if (prev <= 1) {
+                setIsEating(false);
+                clearInterval(interval);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        } else {
+          // If feeding failed, stop eating
+          setIsEating(false);
+          setEatTimer(0);
+        }
+      } catch (error) {
+        console.error('Error feeding pet:', error);
+        setIsEating(false);
+        setEatTimer(0);
+      }
     } else {
       onActivityChange('eat');
     }
@@ -125,6 +155,31 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
       onActivityChange(activityId);
     }
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-orange-300 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-bounce">🐱</div>
+          <p className="text-xl font-bold text-black">Loading your Zutchi...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-orange-300 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😿</div>
+          <p className="text-xl font-bold text-red-600 mb-2">Oops! Something went wrong</p>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full relative overflow-hidden">
@@ -350,7 +405,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
             {/* Pet name tag */}
             <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
               <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {isEating ? 'Hungry Zutchi 🍽️' : 'Zutchi 2.0 ✨'}
+                {isEating ? 'Hungry Zutchi 🍽️' : petStats ? `Zutchi #${petStats.level}` : 'Zutchi 2.0'} ✨
               </span>
             </div>
 
@@ -518,7 +573,7 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
               {/* Pet name tag */}
               <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-full px-4 py-2 shadow-xl border border-white/40 mb-4">
                 <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {isEating ? 'Hungry Zutchi 🍽️' : 'Zutchi 2.0 ✨'}
+                  {isEating ? 'Hungry Zutchi 🍽️' : petStats ? `Zutchi #${petStats.level}` : 'Zutchi 2.0'} ✨
                 </span>
               </div>
 
@@ -554,23 +609,42 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
           transition={{ duration: 0.6, delay: 0.8 }}
           className="flex-shrink-0 flex justify-center pb-1"
         >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleEat}
-            disabled={isEating}
-            className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold text-white shadow-xl transition-all duration-300 touch-manipulation ${
-              isEating
-                ? 'bg-gray-400 cursor-not-allowed opacity-70'
-                : 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 active:scale-95'
-            }`}
-          >
-            <span className="text-xl">🍽️</span>
-            <span className="text-sm sm:text-base">
-              {isEating ? `Eating... ${eatTimer}s` : 'Start Eating'}
-            </span>
-            {isEating && <span className="text-xl">😋</span>}
-          </motion.button>
+          <div className="flex flex-col items-center gap-3">
+            {/* Food amount selector */}
+            <div className="bg-gradient-to-r from-white/90 to-white/80 backdrop-blur-lg rounded-2xl px-4 py-2 shadow-xl border border-white/40">
+              <label className="text-sm font-semibold text-gray-700 mr-2">Food Amount:</label>
+              <select
+                value={feedAmount}
+                onChange={(e) => setFeedAmount(Number(e.target.value))}
+                className="bg-transparent border-none text-gray-800 font-bold focus:outline-none"
+                disabled={isEating}
+              >
+                <option value={5}>5 🍎</option>
+                <option value={10}>10 🥕</option>
+                <option value={20}>20 🍖</option>
+                <option value={50}>50 🍕</option>
+              </select>
+            </div>
+
+            {/* Eat button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleEat}
+              disabled={isEating}
+              className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold text-white shadow-xl transition-all duration-300 touch-manipulation ${
+                isEating
+                  ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                  : 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 active:scale-95'
+              }`}
+            >
+              <span className="text-xl">🍽️</span>
+              <span className="text-sm sm:text-base">
+                {isEating ? `Eating... ${eatTimer}s` : `Feed ${feedAmount} Food`}
+              </span>
+              {isEating && <span className="text-xl">😋</span>}
+            </motion.button>
+          </div>
         </motion.div>
 
         {/* Bottom Tip - Fixed position */}
