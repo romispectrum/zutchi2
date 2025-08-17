@@ -3,13 +3,13 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from 'react';
-import PetGame from '../components/PetGame';
 import EatActivity from '../components/activities/EatActivity';
 import SleepActivity from '../components/activities/SleepActivity';
 import SocialActivity from '../components/activities/SocialActivity';
 import WorkActivity from '../components/activities/WorkActivity';
-import ZutchiOnboarding from '../components/ZutchiOnboarding';
+import PetGame from '../components/PetGame';
 import WalletLoadingScreen from '../components/WalletLoadingScreen';
+import ZutchiOnboarding from '../components/ZutchiOnboarding';
 import { useZutchiOnboard } from '../hooks/useZutchiOnboard';
 
 const AppPage = () => {

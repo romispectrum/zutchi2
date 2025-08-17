@@ -1,12 +1,16 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import ActivityMobilePanel from './ActivityMobilePanel';
-import ActivityRightPanel from './ActivityRightPanel';
-import { useZutchiPet } from '../../hooks/useZutchiPet';
-import { ZutchiStatsTransformer } from '../../lib/zutchiStats';
+import { useEffect, useState } from 'react';
+
+interface PetStats {
+  happiness: number;
+  hunger: number;
+  energy: number;
+  work: number;
+  social: number;
+}
 
 interface EatActivityProps {
   onActivityChange: (activity: string) => void;
@@ -17,9 +21,15 @@ interface EatActivityProps {
 }
 
 const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogout }: EatActivityProps) => {
-  const {
-    gameStats, petMood, feedPet, isLoading, error
-  } = useZutchiPet();
+  const [stats] = useState<PetStats>({
+    happiness: 75,
+    hunger: 60,
+    energy: 80,
+    work: 45,
+    social: 50
+  });
+
+ const [petMood, setPetMood] = useState<'happy' | 'sad' | 'tired' | 'hungry'>('tired');
 
   const [coins] = useState(305);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -32,6 +42,19 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    // Determine pet mood based on stats
+    if (stats.hunger < 30) {
+      setPetMood('hungry');
+    } else if (stats.energy < 30) {
+      setPetMood('tired');
+    } else if (stats.happiness < 40) {
+      setPetMood('sad');
+    } else {
+      setPetMood('happy');
+    }
+  }, [stats]);
+
   const activities = [
     { id: 'home', name: 'Home', emoji: '🏠', color: 'from-emerald-400 to-emerald-600' },
     { id: 'sleep', name: 'Sleep', emoji: '🌙', color: 'from-indigo-400 to-indigo-600' },
@@ -40,21 +63,31 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
     { id: 'social', name: 'Social', emoji: '👥', color: 'from-pink-400 to-pink-600' }
   ];
 
-  // Get activity-specific stats to display
-  const getActivityStats = (activity: string) => {
-    if (!gameStats) return [];
-    return ZutchiStatsTransformer.getActivityStats(gameStats, activity);
+  // Mapping of activities to their relevant stats
+  const activityStatsMapping: Record<string, string[]> = {
+    'home': ['happiness', 'hunger', 'energy', 'work'], // Show all stats on home
+    'sleep': ['energy'], // Sleep primarily affects energy
+    'eat': ['hunger'], // Eating affects hunger/fullness
+    'work': ['work'], // Work affects focus/work stat
+    'social': ['happiness'] // Social activities affect happiness
   };
 
   const getStatColor = (value: number) => {
-    return ZutchiStatsTransformer.getStatColor(value);
+    if (value >= 70) return 'from-green-400 to-green-500';
+    if (value >= 40) return 'from-yellow-400 to-yellow-500';
+    return 'from-red-400 to-red-500';
   };
 
   const getMoodMessage = () => {
     if (isEating) {
-      return `Yummy! So delicious! 😋 (${eatTimer}s)`;
+      return `Yummy! So delicious! � (${eatTimer}s)`;
     }
-    return petMood?.message || 'Time for some tasty food! 😸';
+    switch (petMood) {
+      case 'hungry': return 'I\'m getting hungry! 🥺';
+      case 'tired': return 'Zzz... I need some rest 😴';
+      case 'sad': return 'I need some love and care 💔';
+      default: return 'Ready to be productive! 😸';
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -72,7 +105,8 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
 
       try {
         // Call the contract to feed the pet
-        const success = await feedPet(feedAmount);
+        // const success = await feedPet(feedAmount);
+        const success = true;
         
         if (success) {
           // Start eating animation timer
@@ -108,49 +142,19 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
     }
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-orange-300 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🍽️</div>
-          <p className="text-xl font-bold text-black">Loading eating activity...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-orange-300 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⚠️</div>
-          <p className="text-xl font-bold text-black mb-4">Oops! Something went wrong</p>
-          <p className="text-lg text-gray-700 mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-500 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // Show no pet state
-  if (!gameStats) {
-    return (
-      <div className="min-h-screen bg-orange-300 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🐱</div>
-          <p className="text-xl font-bold text-black">No Zutchi found</p>
-          <p className="text-lg text-gray-700">Please mint a Zutchi NFT to continue</p>
-        </div>
-      </div>
-    );
-  }
+//   if (!gameStats) {
+//     return (
+//       <div className="min-h-screen bg-orange-300 flex items-center justify-center">
+//         <div className="text-center">
+//           <div className="text-6xl mb-4">🐱</div>
+//           <p className="text-xl font-bold text-black">No Zutchi found</p>
+//           <p className="text-lg text-gray-700">Please mint a Zutchi NFT to continue</p>
+//         </div>
+//       </div>
+//     );
+//   }
 
   return (
     <div className="h-screen w-full relative overflow-hidden">
@@ -175,13 +179,13 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
           {/* Pet name tag */}
           <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
             <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {isEating ? 'Hungry Zutchi 🍽️' : `Zutchi #${gameStats.level}`} ✨
+              {isEating ? 'Hungry Zutchi 🍽️' : `Zutchi #${stats.hunger}`} ✨
             </span>
           </div>
           
           {/* Mood indicator */}
           <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-            <span className="text-2xl">{isEating ? '😋' : petMood?.emoji}</span>
+            <span className="text-2xl">{isEating ? '😋' : petMood}</span>
           </div>
         </motion.div>
       </div>
@@ -214,46 +218,6 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
         </div>
       </div>
 
-      {/* Stats Display */}
-      <div className="absolute top-32 left-4 right-4 z-10">
-        <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-4 shadow-xl">
-          <h3 className="text-lg font-bold text-gray-800 mb-3">Eating Stats</h3>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {getActivityStats('eat').map((statKey) => {
-              const value = gameStats[statKey as keyof typeof gameStats] as number;
-              const color = getStatColor(value);
-              
-              return (
-                <div key={statKey} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600 capitalize">
-                    {statKey === 'hunger' ? 'Fullness' : statKey}:
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-20 bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`bg-gradient-to-r ${color} h-2 rounded-full transition-all duration-300`}
-                        style={{ width: `${value}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-bold text-gray-800 w-8 text-right">
-                      {Math.round(value)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Additional info */}
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-              <div>Time until hungry: {ZutchiStatsTransformer.formatDuration(gameStats.timeUntilHungry)}</div>
-              <div>Last ate: {ZutchiStatsTransformer.formatDuration(gameStats.timeSinceLastAte)} ago</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Food Amount Selector and Feed Button */}
       <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-3 z-10">
@@ -291,8 +255,8 @@ const EatActivity = ({ onActivityChange, currentActivity, userId, onBack, onLogo
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-4 z-10">
         {activities.map((activity) => {
           const isActive = currentActivity === activity.id;
-          const isDisabled = (activity.id === 'work' && gameStats.isWorking) || 
-                           (activity.id === 'sleep' && gameStats.isSleeping);
+          const isDisabled = (activity.id === 'work' && stats.energy) || 
+                           (activity.id === 'sleep' && stats.energy);
           
           return (
             <motion.button

@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 interface PetStats {
   happiness: number;
@@ -328,7 +328,7 @@ const PetGame = ({ onActivityChange, currentActivity, userId, user, onLogout }: 
                   <span className={`text-sm font-bold ${
                     isActive ? 'text-purple-700' : 'text-gray-700'
                   }`}>
-                    {activity.name}
+                    {activity.name} - {activity.id}
                   </span>
 
                   {isActive && (
